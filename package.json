@@ -12,7 +12,6 @@
     "pretest": "npm run compile",
     "posttest": "npm run lint",
     "pack": "webpack",
-    "start:dev": "webpack serve",
     "copy-static-assets": "ts-node copyStaticAssets.ts",
     "build:client": "npm run pack",
     "build:server": "npm run compile && npm run copy-static-assets",
