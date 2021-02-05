@@ -28,5 +28,5 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'build', 'server', 'public'),
   },
-  mode: 'production',
+  mode: 'development',
 };
