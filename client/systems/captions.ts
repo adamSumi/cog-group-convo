@@ -17,7 +17,7 @@ export const captions: {
   },
   {
     text:
-      'It’s standard procedure to lock the door. They don’t want anyone sneaking off. <pause> As I was saying, if there is a reasonable doubt in your minds, we must declare the defendant not guilty.',
+      'It’s standard procedure to lock the door. They don’t want anyone sneaking off. As I was saying, if there is a reasonable doubt in your minds, we must declare the defendant not guilty.',
     id: 'jury-foreman',
   },
   {
@@ -50,23 +50,23 @@ export const captions: {
   },
   {
     text:
-      'Anybody doesn’t want to vote? <pause> All right. This has to be a four-to-nothing vote either way. Are we ready? All those voting guilty, raise your hands. <Juror D raises their hand.>',
+      'Anybody doesn’t want to vote? All right. This has to be a four-to-nothing vote either way. Are we ready? All those voting guilty, raise your hands.',
     id: 'jury-foreman',
   },
   {
-    text: '<Juror B raises their hand.>',
+    text: '',
     id: 'juror-b',
   },
   {
-    text: '<Juror C raises their hand.>',
+    text: '',
     id: 'juror-c',
   },
   {
-    text: '<Juror A doesn’t move.>',
+    text: '',
     id: 'juror-a',
   },
   {
-    text: '<Juror C shakes his head> Boy-oh-boy, there’s always one.',
+    text: 'Boy-oh-boy, there’s always one.',
     id: 'juror-c',
   },
   {
@@ -192,7 +192,7 @@ export const captions: {
   },
   {
     text:
-      'You’re a pretty smart fellow, aren’t you? Who made you so wise? What are you, the kid’s guardian angel? <turning to the others> He’s got nothing. The woman wouldn’t lie. She’d have no reason to.',
+      'You’re a pretty smart fellow, aren’t you? Who made you so wise? What are you, the kid’s guardian angel? He’s got nothing. The woman wouldn’t lie. She’d have no reason to.',
     id: 'juror-c',
   },
   {
@@ -225,13 +225,12 @@ export const captions: {
     id: 'juror-b',
   },
   {
-    text:
-      'What do you mean, claimed? She saw it. <pointing a finger at Juror A> He’s confusing you.',
+    text: 'What do you mean, claimed? She saw it. He’s confusing you.',
     id: 'juror-c',
   },
   {
     text:
-      '<ignoring Juror C>The old man only heard the body fall, he didn’t see the stabbing. Then he said he saw the kid running down the stairs and out of the house. So he called the police.',
+      'The old man only heard the body fall, he didn’t see the stabbing. Then he said he saw the kid running down the stairs and out of the house. So he called the police.',
     id: 'juror-b',
   },
   {
@@ -255,7 +254,7 @@ export const captions: {
   },
   {
     text:
-      'That’s true. But the woman was far away, wasn’t she? About 60 feet. <to Jury Foreman> Why are you rubbing your nose like that? I want to know why you are rubbing your nose.',
+      'That’s true. But the woman was far away, wasn’t she? About 60 feet. Why are you rubbing your nose like that? I want to know why you are rubbing your nose.',
     id: 'juror-b',
   },
   {
@@ -284,7 +283,7 @@ export const captions: {
   },
   {
     text:
-      'Listen, I saw them too. I was the closest one to her. She had these marks. <Jury Foreman indicates his nose.>',
+      'Listen, I saw them too. I was the closest one to her. She had these marks.',
     id: 'jury-foreman',
   },
   {
@@ -351,23 +350,23 @@ export const captions: {
     id: 'juror-a',
   },
   {
-    text: '<long pause> Another vote has been called for. Let’s vote. Guilty?',
+    text: 'Another vote has been called for. Let’s vote. Guilty?',
     id: 'jury-foreman',
   },
   {
-    text: '<Juror C raises his hand. He looks at the others with disgust.>',
+    text: '',
     id: 'juror-c',
   },
   {
-    text: 'Not-guilty? <Jury Foreman raises their hand>',
+    text: 'Not-guilty? ',
     id: 'jury-foreman',
   },
   {
-    text: '<Juror B raises their hand>',
+    text: '',
     id: 'juror-b',
   },
   {
-    text: '<Juror A raises their hand>',
+    text: '',
     id: 'juror-a',
   },
 ];
