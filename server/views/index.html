@@ -7,8 +7,6 @@
   <body>
     <a-scene begin-socket debug>
       <a-assets>
-        <!-- 3D Models -->
-        <!-- https://sketchfab.com/3d-models/table-1132fa2850a24917892733566bd68e74 -->
         <a-asset-item
           id="conference-roundtable"
           src="/public/conference-roundtable/scene.gltf"
@@ -52,7 +50,6 @@
         gltf-model="#conference-roundtable"
       ></a-entity>
       <a-entity scale="0.01 0.01 0.01" gltf-model="#conference-room"></a-entity>
-      <!-- far left -->
       <a-entity
         scale="0.3 0.3 0.3"
         position="-0.231 0.67 2.530"
@@ -80,7 +77,6 @@
         ></a-plane>
       </a-entity>
 
-      <!-- mid left -->
       <a-entity
         scale="0.3 0.3 0.3"
         position="-2.002 0.670 1.273"
@@ -106,7 +102,6 @@
           cursor-listener="speakerId: juror-c"
         ></a-plane>
       </a-entity>
-      <!-- mid right -->
       <a-entity
         scale="0.3 0.3 0.3"
         position="-2.287 0.670 -1.110"
@@ -132,7 +127,6 @@
           cursor-listener="speakerId: juror-b"
         ></a-plane>
       </a-entity>
-      <!-- far right -->
       <a-entity
         scale="0.3 0.3 0.3"
         position="-0.250 0.670 -2.462"
@@ -159,7 +153,6 @@
         ></a-plane>
       </a-entity>
 
-      <!-- Camera -->
       <a-entity id="rig" position="2 0.4 0" rotation="0 90 0">
         <a-camera
           id="camera"
@@ -194,9 +187,10 @@
           ></a-text>
         </a-camera>
       </a-entity>
-    </a-scene>
-    <canvas id="global-setup">
+      <canvas id="global-setup" width="360" height="203">
 
-    </canvas>
+      </canvas>
+    </a-scene>
+
   </body>
 </html>
