@@ -1,5 +1,5 @@
 import {Entity, registerComponent} from 'aframe';
-import {Object3D, Vector3} from 'three';
+import {Vector3} from 'three';
 
 const getChildEntityPosition = (childId: string): Vector3 => {
   const childEntity = document.querySelector(`#${childId}`);
@@ -14,33 +14,85 @@ const drawSpeakerEntity = (
   x: number,
   y: number,
   radius: number,
-  startAngle: number = 0,
+  startAngle = 0,
   endAngle: number = 2 * Math.PI
 ) => {
-  ctx.beginPath();
+  const circle = new Path2D();
+  circle.arc(x, y, radius, startAngle, endAngle);
   ctx.fillStyle = '#FFFFFF';
   ctx.strokeStyle = '#FFFFFF';
-  ctx.beginPath();
-  ctx.arc(x, y, radius, startAngle, endAngle);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fill(circle);
+  return circle;
+};
+
+const RADIUS = 30;
+const circles = {
+  'juror-a': [30, 120],
+  'juror-c': [120, 30],
+  'juror-b': [210, 30],
+  'jury-foreman': [300, 120],
+};
+
+let currentCircle: string | null = null;
+
+const setSpeakerAsActive = (speaker: string) => {
+  const captionEl = document.querySelector('a-text#caption');
+  const ambientCaptionEl = document.querySelector('a-text#ambientCaption');
+  captionEl.setAttribute(
+    'caption',
+    `speaker: ${
+      captionEl.getAttribute('caption').speaker
+    }; activeTarget: ${speaker}; ambientCaption: ${
+      captionEl.getAttribute('caption').ambientCaption
+    }`
+  );
+  ambientCaptionEl.setAttribute(
+    'caption',
+    `speaker: ${
+      ambientCaptionEl.getAttribute('caption').speaker
+    }; activeTarget: ${speaker}; ambientCaption: ${
+      ambientCaptionEl.getAttribute('caption').ambientCaption
+    };`
+  );
 };
 
 export const rotationReaderComponent = registerComponent('rotation-reader', {
-  tick: function () {
+  init: function () {
     const canvas: HTMLCanvasElement = document.getElementById(
       'global-setup'
     ) as HTMLCanvasElement;
     const ctx = canvas.getContext('2d')!;
-    drawSpeakerEntity(ctx, 30, 120, 30, 0, 2 * Math.PI);
-    drawSpeakerEntity(ctx, 120, 30, 30, 0, 2 * Math.PI);
-    drawSpeakerEntity(ctx, 210, 30, 30, 0, 2 * Math.PI);
-    drawSpeakerEntity(ctx, 300, 120, 30, 0, 2 * Math.PI);
-
-    const globalJurorAPosition = getChildEntityPosition('juror-a');
-    const globalJurorBPosition = getChildEntityPosition('juror-b');
-    const globalJurorCPosition = getChildEntityPosition('juror-c');
-    const globalJuryForemanPosition = getChildEntityPosition('jury-foreman');
-    // console.log({globalJurorAPosition, globalJurorBPosition, globalJurorCPosition, globalJuryForemanPosition})
+    const [jax, jay] = circles['juror-a'];
+    const [jbx, jby] = circles['juror-b'];
+    const [jcx, jcy] = circles['juror-c'];
+    const [jfx, jfy] = circles['jury-foreman'];
+    const circlePaths: {[key: string]: Path2D} = {
+      'juror-a': drawSpeakerEntity(ctx, jax, jay, RADIUS, 0, 2 * Math.PI),
+      'juror-b': drawSpeakerEntity(ctx, jbx, jby, RADIUS, 0, 2 * Math.PI),
+      'juror-c': drawSpeakerEntity(ctx, jcx, jcy, RADIUS, 0, 2 * Math.PI),
+      'jury-foreman': drawSpeakerEntity(ctx, jfx, jfy, RADIUS, 0, 2 * Math.PI),
+    };
+    canvas.addEventListener('click', evt => {
+      Object.entries(circlePaths).forEach(([key, circle]) => {
+        if (ctx.isPointInPath(circle, evt.offsetX, evt.offsetY)) {
+          if (currentCircle && currentCircle !== key) {
+            ctx.fillStyle = 'white';
+            ctx.fill(circlePaths[currentCircle]);
+          }
+          ctx.fillStyle = 'red';
+          ctx.strokeStyle = 'red';
+          ctx.fill(circle);
+          ctx.fillStyle = 'white';
+          currentCircle = key;
+          setSpeakerAsActive(key);
+        }
+      });
+    });
+  },
+  tick: function () {
+    // const globalJurorAPosition = getChildEntityPosition('juror-a');
+    // const globalJurorBPosition = getChildEntityPosition('juror-b');
+    // const globalJurorCPosition = getChildEntityPosition('juror-c');
+    // const globalJuryForemanPosition = getChildEntityPosition('jury-foreman');
   },
 });

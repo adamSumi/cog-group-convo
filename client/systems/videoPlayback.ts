@@ -78,14 +78,14 @@ const updateCaption = (currentSpeaker: string, text: string) => {
 
   captionEl.setAttribute(
     'caption',
-    `speaker: ${currentSpeaker}; cursorTarget: ${
-      captionEl.getAttribute('caption').cursorTarget
+    `speaker: ${currentSpeaker}; activeTarget: ${
+      captionEl.getAttribute('caption').activeTarget
     };`
   );
   ambientCaptionEl.setAttribute(
     'caption',
-    `speaker: ${currentSpeaker}; cursorTarget: ${
-      captionEl.getAttribute('caption').cursorTarget
+    `speaker: ${currentSpeaker}; activeTarget: ${
+      captionEl.getAttribute('caption').activeTarget
     }; ambientCaption: ${
       ambientCaptionEl.getAttribute('caption').ambientCaption
     }`
