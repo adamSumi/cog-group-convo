@@ -54,7 +54,64 @@
         gltf-model="#conference-roundtable"
       ></a-entity>
       <a-entity scale="0.01 0.01 0.01" gltf-model="#conference-room"></a-entity>
-      <a-entity id="smartphone" position="2.019 1.296 -0.161" rotation="90 0 0" gltf-model="#smartphone-model"></a-entity>
+      <a-entity
+        id="smartphone"
+        position="2.019 1.296 -0.161"
+        rotation="90 0 0"
+        gltf-model="#smartphone-model"
+      ></a-entity>
+      <a-triangle
+        class="indicator-triangle"
+        speaker-id="juror-a"
+        color="#FFD700"
+        position="2.023 0.018 0.129"
+        rotation="0 45.786 0"
+        vertex-a="-0.05 1.296 0"
+        vertex-b="0 1.296 0.0144337567"
+        vertex-c="0 1.296 -0.0144337567"
+        material="side: double; opacity: 0;"
+        animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+      >
+      </a-triangle>
+      <a-triangle
+        class="indicator-triangle"
+        speaker-id="juror-b"
+        color="#FFD700"
+        position="1.984 0.018 0.088"
+        rotation="0 20.145 0"
+        vertex-a="-0.05 1.296 0"
+        vertex-b="0 1.296 0.0144337567"
+        vertex-c="0 1.296 -0.0144337567"
+        material="side: double; opacity: 0;"
+        animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+      >
+      </a-triangle>
+      <a-triangle
+        class="indicator-triangle"
+        speaker-id="juror-c"
+        color="#FFD700"
+        position="1.984 0.018 -0.026"
+        rotation="0 -8.697 0"
+        vertex-a="-0.05 1.296 0"
+        vertex-b="0 1.296 0.0144337567"
+        vertex-c="0 1.296 -0.0144337567"
+        material="side: double; opacity: 0;"
+        animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+      >
+      </a-triangle>
+      <a-triangle
+        class="indicator-triangle"
+        speaker-id="jury-foreman"
+        color="#FFD700"
+        position="2.025 0.018 -0.113"
+        rotation="0 -49.939 0"
+        vertex-a="-0.05 1.296 0"
+        vertex-b="0 1.296 0.0144337567"
+        vertex-c="0 1.296 -0.0144337567"
+        material="side: double; opacity: 0;"
+        animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+      >
+      </a-triangle>
       <a-entity
         scale="0.3 0.3 0.3"
         position="-0.231 0.67 2.530"
@@ -89,9 +146,9 @@
         gltf-model="#sitting"
       >
         <a-video
-          id="juror-c"
-          src="#juror-c-video"
-          video-playback="juror-c"
+          id="juror-b"
+          src="#juror-b-video"
+          video-playback="juror-b"
           width="16"
           height="9"
           scale="0.37 0.37 0.37"
@@ -104,7 +161,7 @@
           position="0 4.75 0.9"
           material="side: double; opacity: 0"
           class="cursor-readable"
-          cursor-listener="speakerId: juror-c"
+          cursor-listener="speakerId: juror-b"
         ></a-plane>
       </a-entity>
       <a-entity
@@ -114,9 +171,9 @@
         rotation="0 60 0"
       >
         <a-video
-          id="juror-b"
-          src="#juror-b-video"
-          video-playback="juror-b"
+          id="juror-c"
+          src="#juror-c-video"
+          video-playback="juror-c"
           width="16"
           height="9"
           scale="0.33 0.33 0.33"
@@ -129,7 +186,7 @@
           position="0 4.75 0.9"
           material="side: double; opacity: 0"
           class="cursor-readable"
-          cursor-listener="speakerId: juror-b"
+          cursor-listener="speakerId: juror-c"
         ></a-plane>
       </a-entity>
       <a-entity
@@ -159,10 +216,7 @@
       </a-entity>
 
       <a-entity id="rig" position="2 0.4 0" rotation="0 90 0">
-        <a-camera
-          id="camera"
-          look-controls="pointer-lock-enabled: true;"
-        >
+        <a-camera id="camera" look-controls="pointer-lock-enabled: true;">
           <a-cursor
             cursor="fuse: true; fuseTimeout: 50"
             raycaster="showLine: true; objects: .cursor-readable"
