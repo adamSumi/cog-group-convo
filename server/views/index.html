@@ -2,10 +2,10 @@
   <head>
     <!-- <script src="https://aframe.io/releases/1.1.0/aframe.min.js"></script> -->
     <script src="/public/bundle.js"></script>
-    <link rel="stylesheet" href="/public/index.css">
+    <link rel="stylesheet" href="/public/index.css" />
   </head>
   <body>
-    <a-scene begin-socket debug>
+    <a-scene debug>
       <a-assets>
         <a-asset-item
           id="conference-roundtable"
@@ -18,6 +18,10 @@
         <a-asset-item
           id="sitting"
           src="/public/Lowpolymesh_Eliber.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="smartphone-model"
+          src="/public/smartphone/scene.gltf"
         ></a-asset-item>
         <video
           id="juror-a-video"
@@ -50,6 +54,7 @@
         gltf-model="#conference-roundtable"
       ></a-entity>
       <a-entity scale="0.01 0.01 0.01" gltf-model="#conference-room"></a-entity>
+      <a-entity id="smartphone" position="2.019 1.296 -0.161" rotation="90 0 0" gltf-model="#smartphone-model"></a-entity>
       <a-entity
         scale="0.3 0.3 0.3"
         position="-0.231 0.67 2.530"
@@ -157,12 +162,10 @@
         <a-camera
           id="camera"
           look-controls="pointer-lock-enabled: true;"
-          rotation-reader
         >
           <a-cursor
             cursor="fuse: true; fuseTimeout: 50"
             raycaster="showLine: true; objects: .cursor-readable"
-            line="color: orange; opacity: 0.5"
             cursor-reader
           ></a-cursor>
           <a-text
@@ -187,10 +190,6 @@
           ></a-text>
         </a-camera>
       </a-entity>
-      <canvas id="global-setup" width="360" height="203">
-
-      </canvas>
     </a-scene>
-
   </body>
 </html>
