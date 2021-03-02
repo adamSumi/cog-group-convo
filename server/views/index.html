@@ -19,10 +19,6 @@
           id="sitting"
           src="/public/Lowpolymesh_Eliber.glb"
         ></a-asset-item>
-        <a-asset-item
-          id="smartphone-model"
-          src="/public/smartphone/scene.gltf"
-        ></a-asset-item>
         <video
           id="juror-a-video"
           autoplay
@@ -54,12 +50,6 @@
         gltf-model="#conference-roundtable"
       ></a-entity>
       <a-entity scale="0.01 0.01 0.01" gltf-model="#conference-room"></a-entity>
-      <a-entity
-        id="smartphone"
-        position="2.019 1.296 -0.161"
-        rotation="90 0 0"
-        gltf-model="#smartphone-model"
-      ></a-entity>
       <a-triangle
         class="indicator-triangle"
         speaker-id="juror-a"
@@ -134,8 +124,6 @@
           position="0 4.75 0.9"
           material="side: double; opacity: 0"
           color="#FFF"
-          class="cursor-readable"
-          cursor-listener="speakerId: juror-a"
         ></a-plane>
       </a-entity>
 
@@ -160,8 +148,6 @@
           scale="0.37 0.37 0.37"
           position="0 4.75 0.9"
           material="side: double; opacity: 0"
-          class="cursor-readable"
-          cursor-listener="speakerId: juror-b"
         ></a-plane>
       </a-entity>
       <a-entity
@@ -185,8 +171,6 @@
           scale="0.33 0.33 0.33"
           position="0 4.75 0.9"
           material="side: double; opacity: 0"
-          class="cursor-readable"
-          cursor-listener="speakerId: juror-c"
         ></a-plane>
       </a-entity>
       <a-entity
@@ -210,8 +194,6 @@
           scale="0.33 0.33 0.33"
           position="0 4.75 0.9"
           material="side: double; opacity: 0"
-          class="cursor-readable"
-          cursor-listener="speakerId: jury-foreman"
         ></a-plane>
       </a-entity>
 
@@ -219,7 +201,6 @@
         <a-camera id="camera" look-controls="pointer-lock-enabled: true;">
           <a-cursor
             cursor="fuse: true; fuseTimeout: 50"
-            raycaster="showLine: true; objects: .cursor-readable"
             cursor-reader
           ></a-cursor>
           <a-text

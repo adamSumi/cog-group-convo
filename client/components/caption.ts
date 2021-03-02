@@ -1,5 +1,4 @@
-import {Entity, registerComponent} from 'aframe';
-import {Vector3} from 'three';
+import {registerComponent} from 'aframe';
 
 const INACTIVE_INDICATOR_COLOR = '#FFD700';
 const ACTIVE_INDICATOR_COLOR = '#FF0000';
