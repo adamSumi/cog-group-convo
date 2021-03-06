@@ -4,7 +4,7 @@
   </head>
   <body>
     <a-scene stats>
-      <a-assets>
+      <a-assets timeout="15000">
         <a-asset-item
           id="conference-roundtable"
           src="/public/conference-roundtable/scene.compressed.gltf"
@@ -138,40 +138,13 @@
             caption="speaker: ''; activeTarget: ''; ambientCaption: true;"
           ></a-text>
           <a-cone
-            indicator="speakerId: juror-a;"
+            indicator
             color="#FFD700"
-            position="-0.33 -0.117 -0.269"
+            position="0 -0.2 -0.269"
             radius-bottom="0.006"
             radius-top="0.001"
             height="0.05"
-            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-          ></a-cone>
-          <a-cone
-            indicator="speakerId: juror-b;"
-            color="#FFD700"
-            position="-0.13 -0.117 -0.269"
-            radius-bottom="0.006"
-            radius-top="0.001"
-            height="0.05"
-            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-          ></a-cone>
-          <a-cone
-            indicator="speakerId: juror-c;"
-            color="#FFD700"
-            position="0.07 -0.117 -0.269"
-            radius-bottom="0.006"
-            radius-top="0.001"
-            height="0.05"
-            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-          ></a-cone>
-          <a-cone
-            indicator="speakerId: jury-foreman;"
-            color="#FFD700"
-            position="0.27 -0.117 -0.269"
-            radius-bottom="0.006"
-            radius-top="0.001"
-            height="0.05"
-            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+            animation__shrink="property: scale; from: 1 1 1; to: 0 0 0; startEvents: shrink; dur: 5000;"
           ></a-cone>
         </a-camera>
       </a-entity>

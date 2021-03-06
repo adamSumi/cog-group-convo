@@ -46,14 +46,21 @@ export const captionComponent = registerComponent('caption', {
     if (!this.data.speaker || !this.data.activeTarget) {
       return;
     }
-    const speakerIsActive = this.data.speaker === this.data.activeTarget;
     let opacity: number;
     if (this.data.ambientCaption) {
       // If this is an ambient captioning element, we want it only to appear when not on the correct speaker.
-      opacity = !speakerIsActive ? 1 : 0;
+      opacity = !this.getSpeakerIsActive() ? 1 : 0;
     } else {
-      opacity = speakerIsActive ? 1 : 0;
+      opacity = this.getSpeakerIsActive() ? 1 : 0;
     }
     this.el.setAttribute('opacity', opacity);
   },
+
+  getSpeaker: function() {
+    return this.data.speaker;
+  },
+
+  getSpeakerIsActive: function() {
+    return this.data.speaker === this.data.activeTarget;
+  }
 });

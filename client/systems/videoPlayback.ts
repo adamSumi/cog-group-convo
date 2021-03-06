@@ -1,4 +1,5 @@
 import {registerSystem, System} from 'aframe';
+import {indicatorComponent} from '../components/indicator';
 import {VIDEO_PLAYBACK_NAME} from '../constants';
 import {captions} from './captions';
 
@@ -90,6 +91,10 @@ const updateCaption = (currentSpeaker: string, text: string) => {
       ambientCaptionEl.getAttribute('caption').ambientCaption
     }`
   );
+
+  // Reset the fading animation of the indicator cone.
+  const indicator = document.querySelector('a-cone');
+  indicator.emit('shrink');
 };
 
 export const videoPlaybackSystem = registerSystem(VIDEO_PLAYBACK_NAME, {
