@@ -1,16 +1,4 @@
-import {Entity, registerComponent} from 'aframe';
-import {Vector3} from 'three';
-
-const INACTIVE_INDICATOR_COLOR = '#FFD700';
-const ACTIVE_INDICATOR_COLOR = '#FF0000';
-
-const getChildEntityPosition = (childId: string): Vector3 => {
-  const childEntity = document.querySelector(`#${childId}`);
-  const childEntityPosition = childEntity?.object3D.position;
-  const parentEntityPosition = (childEntity?.parentElement as Entity).object3D
-    .position;
-  return new Vector3().copy(childEntityPosition).add(parentEntityPosition);
-};
+import {registerComponent} from 'aframe';
 
 const setSpeakerAsActive = (speaker: string) => {
   const captionEl = document.querySelector('a-text#caption');
@@ -33,14 +21,6 @@ const setSpeakerAsActive = (speaker: string) => {
   );
 };
 
-const rotateIndicator = (
-  indicator: Entity,
-  camera: Entity,
-  target: Vector3
-) => {
-  indicator.object3D.lookAt(target);
-};
-
 export const captionComponent = registerComponent('caption', {
   schema: {
     speaker: {type: 'string'},
@@ -60,20 +40,6 @@ export const captionComponent = registerComponent('caption', {
         const jurorCode = keyboardMap.get(event.key)!;
         setSpeakerAsActive(jurorCode);
       }
-    });
-  },
-  tick: function () {
-    const camera = document.querySelector('#camera');
-    document.querySelectorAll('a-cone').forEach(cone => {
-      const speakerId = cone.getAttribute('speaker-id');
-      const correspondingSpeakerVideoPosition = getChildEntityPosition(
-        speakerId
-      );
-      rotateIndicator(
-        cone as Entity,
-        camera,
-        correspondingSpeakerVideoPosition
-      );
     });
   },
   update: function () {

@@ -1,10 +1,9 @@
 <html>
   <head>
-    <!-- <script src="https://aframe.io/releases/1.1.0/aframe.min.js"></script> -->
     <script src="/public/bundle.js"></script>
   </head>
   <body>
-    <a-scene debug>
+    <a-scene stats>
       <a-assets>
         <a-asset-item
           id="conference-roundtable"
@@ -65,14 +64,6 @@
           scale="0.28 0.28 0.28"
           position="0 4.75 0.9"
         ></a-video>
-        <a-plane
-          width="3.5"
-          height="16"
-          scale="0.28 0.28 0.28"
-          position="0 4.75 0.9"
-          material="side: double; opacity: 0"
-          color="#FFF"
-        ></a-plane>
       </a-entity>
 
       <a-entity
@@ -90,13 +81,6 @@
           scale="0.37 0.37 0.37"
           position="0 4.75 0.9"
         ></a-video>
-        <a-plane
-          width="6"
-          height="9"
-          scale="0.37 0.37 0.37"
-          position="0 4.75 0.9"
-          material="side: double; opacity: 0"
-        ></a-plane>
       </a-entity>
       <a-entity
         scale="0.3 0.3 0.3"
@@ -113,13 +97,6 @@
           scale="0.33 0.33 0.33"
           position="0 4.5 0.9"
         ></a-video>
-        <a-plane
-          width="6"
-          height="9"
-          scale="0.33 0.33 0.33"
-          position="0 4.75 0.9"
-          material="side: double; opacity: 0"
-        ></a-plane>
       </a-entity>
       <a-entity
         scale="0.3 0.3 0.3"
@@ -136,21 +113,10 @@
           scale="0.33 0.33 0.33"
           position="0 4.75 0.9"
         ></a-video>
-        <a-plane
-          width="6"
-          height="9"
-          scale="0.33 0.33 0.33"
-          position="0 4.75 0.9"
-          material="side: double; opacity: 0"
-        ></a-plane>
       </a-entity>
 
       <a-entity id="rig" position="2 0.4 0" rotation="0 90 0">
-
         <a-camera id="camera" look-controls="pointer-lock-enabled: true;">
-          <a-cursor
-            cursor="fuse: true; fuseTimeout: 50"
-          ></a-cursor>
           <a-text
             id="caption"
             opacity="0"
@@ -172,48 +138,41 @@
             caption="speaker: ''; activeTarget: ''; ambientCaption: true;"
           ></a-text>
           <a-cone
-          class="indicator"
-          speaker-id="juror-a"
-          color="#FFD700"
-          position="-0.168 -0.107 -0.269"
-          radius-bottom="0.006"
-          radius-top="0.001"
-          height="0.05"
-          animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-        ></a-cone>
-        <!-- <a-cone
-          class="indicator"
-          speaker-id="juror-b"
-          color="#FFD700"
-          position="-0.168 -0.107 -0.269"
-          rotation="-90 0 0"
-          radius-bottom="0.006"
-          radius-top="0.001"
-          height="0.05"
-          animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-        ></a-cone>
-        <a-cone
-          class="indicator"
-          speaker-id="juror-c"
-          color="#FFD700"
-          position="-0.168 -0.107 -0.269"
-          rotation="-90 0 0"
-          radius-bottom="0.006"
-          radius-top="0.001"
-          height="0.05"
-          animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-        ></a-cone>
-        <a-cone
-          class="indicator"
-          speaker-id="jury-foreman"
-          color="#FFD700"
-          position="-0.168 -0.107 -0.269"
-          rotation="-90 0 0"
-          radius-bottom="0.006"
-          radius-top="0.001"
-          height="0.05"
-          animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
-        ></a-cone> -->
+            indicator="speakerId: juror-a;"
+            color="#FFD700"
+            position="-0.33 -0.117 -0.269"
+            radius-bottom="0.006"
+            radius-top="0.001"
+            height="0.05"
+            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+          ></a-cone>
+          <a-cone
+            indicator="speakerId: juror-b;"
+            color="#FFD700"
+            position="-0.13 -0.117 -0.269"
+            radius-bottom="0.006"
+            radius-top="0.001"
+            height="0.05"
+            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+          ></a-cone>
+          <a-cone
+            indicator="speakerId: juror-c;"
+            color="#FFD700"
+            position="0.07 -0.117 -0.269"
+            radius-bottom="0.006"
+            radius-top="0.001"
+            height="0.05"
+            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+          ></a-cone>
+          <a-cone
+            indicator="speakerId: jury-foreman;"
+            color="#FFD700"
+            position="0.27 -0.117 -0.269"
+            radius-bottom="0.006"
+            radius-top="0.001"
+            height="0.05"
+            animation__fade="property: components.material.material.opacity; from: 1; to: 0; startEvents: fade; dur: 10000;"
+          ></a-cone>
         </a-camera>
       </a-entity>
     </a-scene>

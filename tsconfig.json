@@ -1,9 +1,11 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
+    "target": "ES6",
     "outDir": "build",
     "lib": [
-      "DOM"
+      "DOM",
+      "DOM.Iterable"
     ]
   },
   "include": [
