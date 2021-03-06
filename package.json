@@ -13,7 +13,7 @@
     "posttest": "npm run lint",
     "copy-static-assets": "ts-node copyStaticAssets.ts",
     "build:server": "npm run compile && npm run copy-static-assets",
-    "build:client": "esbuild ./client/index.ts --bundle --outfile=build/server/public/bundle.js && npm run copy-static-assets",
+    "build:client": "esbuild ./client/index.ts --bundle --minify --outfile=build/server/public/bundle.js && npm run copy-static-assets",
     "build:all": "npm run build:client && npm run build:server",
     "postinstall": "npm run build:all",
     "start": "node build/server/index.js"
