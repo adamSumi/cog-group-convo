@@ -13,10 +13,10 @@
           id="conference-room"
           src="/public/conference-room/scene.compressed.gltf"
         ></a-asset-item>
-        <!-- <a-asset-item
-          id="sitting"
-          src="/public/Lowpolymesh_Eliber.compressed.glb"
-        ></a-asset-item> -->
+        <a-asset-item
+          id="standing"
+          src="/public/human/scene.compressed.glb"
+        ></a-asset-item>
         <video
           id="juror-a-video"
           autoplay
@@ -48,74 +48,68 @@
         gltf-model="#conference-roundtable"
       ></a-entity>
       <a-entity scale="0.01 0.01 0.01" gltf-model="#conference-room"></a-entity>
-      </a-triangle>
-      <a-entity
-        scale="0.3 0.3 0.3"
-        position="-0.231 0.67 2.530"
+      <a-video
+        id="juror-a"
+        src="#juror-a-video"
+        video-playback="juror-a"
+        width="9"
+        height="16"
+        scale="0.0924 0.0924 0.0924"
+        position="-0.11689 2.095 2.285"
         rotation="0 155 0"
-        gltf-model="#sitting"
-      >
-        <a-video
-          id="juror-a"
-          src="#juror-a-video"
-          video-playback="juror-a"
-          width="9"
-          height="16"
-          scale="0.28 0.28 0.28"
-          position="0 4.75 0.9"
-        ></a-video>
-      </a-entity>
-
-      <a-entity
-        scale="0.3 0.3 0.3"
-        position="-2.002 0.670 1.273"
+      ></a-video>
+      <a-video
+        id="juror-b"
+        src="#juror-b-video"
         rotation="0 120 0"
-        gltf-model="#sitting"
-      >
-        <a-video
-          id="juror-b"
-          src="#juror-b-video"
-          video-playback="juror-b"
-          width="16"
-          height="9"
-          scale="0.37 0.37 0.37"
-          position="0 4.75 0.9"
-        ></a-video>
-      </a-entity>
-      <a-entity
-        scale="0.3 0.3 0.3"
-        position="-2.287 0.670 -1.110"
-        gltf-model="#sitting"
+        video-playback="juror-b"
+        width="16"
+        height="9"
+        scale="0.111 0.111 0.111"
+        position="-1.768 2.095 1.138"
+      ></a-video>
+      <a-video
+        id="juror-c"
+        src="#juror-c-video"
+        video-playback="juror-c"
+        width="16"
+        height="9"
+        scale="0.111 0.111 0.111"
         rotation="0 60 0"
-      >
-        <a-video
-          id="juror-c"
-          src="#juror-c-video"
-          video-playback="juror-c"
-          width="16"
-          height="9"
-          scale="0.33 0.33 0.33"
-          position="0 4.5 0.9"
-        ></a-video>
-      </a-entity>
-      <a-entity
-        scale="0.3 0.3 0.3"
-        position="-0.250 0.670 -2.462"
+        position="-2.053 2.02 -0.975"
+      ></a-video>
+      <a-video
+        id="jury-foreman"
+        src="#jury-foreman-video"
+        video-playback="jury-foreman"
+        width="16"
+        height="9"
+        scale="0.111 0.111 0.111"
         rotation="0 25 0"
-        gltf-model="#sitting"
+        position="-0.135 2.095 -2.217"
       >
-        <a-video
-          id="jury-foreman"
-          src="#jury-foreman-video"
-          video-playback="jury-foreman"
-          width="16"
-          height="9"
-          scale="0.33 0.33 0.33"
-          position="0 4.75 0.9"
-        ></a-video>
-      </a-entity>
+      </a-video>
 
       <a-entity id="rig" position="2 0.4 0" rotation="0 90 0">
+        <a-entity
+          id="body"
+          stay-below
+          gltf-model="#standing"
+          scale="0.0035 0.0035 0.0035"
+          position="0 0.75 0"
+          rotation="0 180 0"
+          rotate-qe
+        >
+          <a-cone
+            indicator
+            color="#FFD700"
+            position="0 210 75"
+            radius-bottom="5"
+            radius-top="0"
+            height="20"
+            animation__shrink="property: scale; from: 1 1 1; to: 0 0 0; startEvents: shrink; dur: 5000;"
+          ></a-cone>
+        </a-entity>
         <a-camera id="camera" look-controls="pointer-lock-enabled: true;">
           <a-text
             id="caption"
@@ -137,15 +131,6 @@
             position="0.7 0.7 -1"
             caption="speaker: ''; activeTarget: ''; ambientCaption: true;"
           ></a-text>
-          <a-cone
-            indicator
-            color="#FFD700"
-            position="0 -0.2 -0.269"
-            radius-bottom="0.006"
-            radius-top="0.001"
-            height="0.05"
-            animation__shrink="property: scale; from: 1 1 1; to: 0 0 0; startEvents: shrink; dur: 5000;"
-          ></a-cone>
         </a-camera>
       </a-entity>
     </a-scene>
