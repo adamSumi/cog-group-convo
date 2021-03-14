@@ -26,7 +26,6 @@ export const indicatorComponent = registerComponent('indicator', {
 
     // Rotate indicator
     const anchorEl = document.querySelector(`#anchor`); // Anchor element, positioned in front of chest
-    console.log(anchorEl.object3D.getWorldPosition(this.data.anchorVec));
     // Step 1: Make anchor look at target
     anchorEl.object3D.lookAt(this.data.speakerVec);
     // Step 2: Copy anchor's rotation to this element's rotation
