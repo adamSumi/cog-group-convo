@@ -100,17 +100,18 @@
           rotation="0 180 0"
           rotate-qe
         >
+          <a-entity id="anchor" position="0 210 75"></a-entity>
+        </a-entity>
+        <a-camera id="camera" look-controls="pointer-lock-enabled: true;">
           <a-cone
             indicator
             color="#FFD700"
-            position="0 210 75"
-            radius-bottom="5"
+            position="0 -0.2 -0.25"
+            radius-bottom="0.005"
             radius-top="0"
-            height="20"
+            height="0.03"
             animation__shrink="property: scale; from: 1 1 1; to: 0 0 0; startEvents: shrink; dur: 5000;"
           ></a-cone>
-        </a-entity>
-        <a-camera id="camera" look-controls="pointer-lock-enabled: true;">
           <a-text
             id="caption"
             opacity="0"

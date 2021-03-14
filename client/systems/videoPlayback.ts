@@ -91,10 +91,6 @@ const updateCaption = (currentSpeaker: string, text: string) => {
       ambientCaptionEl.getAttribute('caption').ambientCaption
     }`
   );
-
-  // Reset the fading animation of the indicator cone.
-  const indicator = document.querySelector('a-cone');
-  indicator.emit('shrink');
 };
 
 export const videoPlaybackSystem = registerSystem(VIDEO_PLAYBACK_NAME, {
