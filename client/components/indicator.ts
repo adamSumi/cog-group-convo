@@ -15,6 +15,9 @@ export const indicatorComponent = registerComponent('indicator', {
 
   tick: function () {
     const captionEl = this.data.captionEl;
+    if (captionEl.components.caption.getSpeaker() === '') {
+      return;
+    }
     if (captionEl.components.caption.getSpeakerIsActive()) {
       this.el.setAttribute('color', ACTIVE_INDICATOR_COLOR);
     } else {
