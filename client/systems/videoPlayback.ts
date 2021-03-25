@@ -1,5 +1,8 @@
 import {Entity, registerSystem, System} from 'aframe';
-import {INACTIVE_INDICATOR_COLOR, indicatorComponent} from '../components/indicator';
+import {
+  INACTIVE_INDICATOR_COLOR,
+  indicatorComponent,
+} from '../components/indicator';
 import {VIDEO_PLAYBACK_NAME} from '../constants';
 import {captions} from './captions';
 
@@ -91,15 +94,6 @@ const updateCaption = (currentSpeaker: string, text: string) => {
       ambientCaptionEl.getAttribute('caption').ambientCaption
     }`
   );
-
-  const indicators = document.querySelectorAll('a-cone') as NodeListOf<Entity>;
-  for (const indicator of indicators) {
-    if (indicator.getAttribute('indicator').jurorId === currentSpeaker) {
-      indicator.emit('fade');
-    } else {
-      indicator.setAttribute('material', 'color', INACTIVE_INDICATOR_COLOR);
-    }
-  }
 };
 
 export const videoPlaybackSystem = registerSystem(VIDEO_PLAYBACK_NAME, {
@@ -133,6 +127,14 @@ export const videoPlaybackSystem = registerSystem(VIDEO_PLAYBACK_NAME, {
     swapVideoElement(jurorId, idleVideoFilepath);
 
     if (!stem.includes('idle')) {
+      const indicators = document.querySelectorAll(
+        'a-cone'
+      ) as NodeListOf<Entity>;
+      for (const indicator of indicators) {
+        if (indicator.getAttribute('indicator').jurorId === jurorId) {
+          indicator.emit('fade');
+        }
+      }
       // Video is of someone speaking, change the current speaker video to idle and change the next speaker's idle to playing.
       const {id: newSpeakerId} = captions[this.currentlyPlaying];
       this.currentlyPlaying += 1;

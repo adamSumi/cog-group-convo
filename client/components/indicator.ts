@@ -19,10 +19,17 @@ export const indicatorComponent = registerComponent('indicator', {
     if (captionEl.components.caption.getSpeaker() === '') {
       return;
     }
-    if (captionEl.components.caption.getSpeakerIsActive()) {
+    if (
+      captionEl.components.caption.getSpeaker() === this.data.jurorId &&
+      captionEl.components.caption.getSpeakerIsActive()
+    ) {
       this.el.setAttribute('color', ACTIVE_INDICATOR_COLOR);
-    } else {
+    } else if (
+      captionEl.components.caption.getSpeaker() === this.data.jurorId
+    ) {
       this.el.setAttribute('color', INACTIVE_INDICATOR_COLOR);
+    } else {
+      this.el.setAttribute('color', '#000000');
     }
     document
       .querySelector(`#${this.data.jurorId}`)
