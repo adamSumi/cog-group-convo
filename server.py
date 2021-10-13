@@ -13,6 +13,7 @@ from rx import operators as ops
 from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
 import vlc
+import qrcode
 
 import captions
 from common import BYTEORDER, HEADER_SIZE, HOST, PORT
@@ -89,6 +90,32 @@ def load_video_in_vlc(
     return player
 
 
+def get_ip() -> str:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(("10.255.255.255", 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return ip
+
+
+def render_connection_qrcode(ip: str, port: int) -> None:
+    connection_str = ip + ":" + str(port)
+    logging.debug(f"Glasses should access address: {connection_str}")
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.ERROR_CORRECT_L,
+        box_size=1,
+    )
+    qr.add_data(connection_str)
+    qr.make(fit=True)
+    qr.print_ascii()
+
+
 def main(host: str = HOST, port: int = PORT) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
@@ -111,6 +138,7 @@ def main(host: str = HOST, port: int = PORT) -> None:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
         sock.listen()
+        render_connection_qrcode(get_ip(), port)
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
         for player in players:
@@ -124,13 +152,13 @@ def main(host: str = HOST, port: int = PORT) -> None:
         for player in players:
             player.set_pause(0)
         time.sleep(1000)
-        # messages_observable = rx.combine_latest(
-        #     captions_observable,
-        #     serial_monitor_observable,
-        # ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
-        # messages_observable.subscribe(
-        #     lambda message: socket_transmission(message, conn)
-        # )
+        messages_observable = rx.combine_latest(
+            captions_observable,
+            serial_monitor_observable,
+        ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
+        messages_observable.subscribe(
+            lambda message: socket_transmission(message, conn)
+        )
 
 
 if __name__ == "__main__":
