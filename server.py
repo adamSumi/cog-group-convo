@@ -1,11 +1,13 @@
 import json
 import logging
 import multiprocessing
+import os
 import time
 import datetime
 import random
 import socket
-from typing import Callable, Dict, Literal, Optional
+import pathlib
+from typing import Callable, Dict, List, Literal, Optional
 
 import rx
 from rx import operators as ops
@@ -76,6 +78,18 @@ def build_delayed_caption_obs(caption: Dict[str, str]) -> Observable:
     )
 
 
+def load_video_in_vlc(
+    video_path: str, shared_vlc_instance: Optional[vlc.Instance] = None
+) -> vlc.MediaPlayer:
+    vlc_instance: vlc.Instance = (
+        vlc.Instance() if not shared_vlc_instance else shared_vlc_instance
+    )
+    player: vlc.MediaPlayer = vlc_instance.media_player_new()
+    media = vlc_instance.media_new(video_path)
+    player.set_media(media)
+    return player
+
+
 def main(host: str = HOST, port: int = PORT) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
@@ -84,13 +98,9 @@ def main(host: str = HOST, port: int = PORT) -> None:
     on the reading taken from the serial monitor (see create_message)
     """
     logging.debug("Loading VLC videos")
-    vlc_instance = vlc.Instance()
-    players = [vlc_instance.media_player_new() for _ in range(NUM_JURORS)]
-    juror_videos = [
-        vlc_instance.media_new(f"videos/{i}.mp4") for i in range(NUM_JURORS)
-    ]
-    for i, video in enumerate(juror_videos):
-        players[i].set_media(video)
+    players: List[vlc.MediaPlayer] = []
+    for i in range(3):  # range(NUM_JURORS):
+        players.append(load_video_in_vlc(os.path.join("videos", f"{i+1}.mp4")))
     scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
     captions_observable: Observable = rx.concat_with_iterable(
         build_delayed_caption_obs(caption) for caption in captions.CAPTIONS
@@ -104,19 +114,24 @@ def main(host: str = HOST, port: int = PORT) -> None:
         sock.listen()
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
+        for player in players:
+            player.play()
+            player.set_pause(1)
         ready = input("Press ENTER to begin the experiment.")
         while ready != EXPECTED_CHARACTER:
             ready = input(
                 "Invalid character received. Press ENTER to begin the experiment."
             )
-        messages_observable = rx.combine_latest(
-            captions_observable,
-            serial_monitor_observable,
-        ).pipe(ops.map(create_message))
-        messages_observable.subscribe(
-            lambda message: socket_transmission(message, conn)
-        )
-        conn.close()
+        for player in players:
+            player.set_pause(0)
+        time.sleep(1000)
+        # messages_observable = rx.combine_latest(
+        #     captions_observable,
+        #     serial_monitor_observable,
+        # ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
+        # messages_observable.subscribe(
+        #     lambda message: socket_transmission(message, conn)
+        # )
 
 
 if __name__ == "__main__":
