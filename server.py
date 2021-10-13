@@ -27,11 +27,15 @@ random_juror = lambda: random.choice(
 def socket_transmission(
     caption: Dict[str, str], juror: Optional[str], conn: socket.socket
 ) -> None:
-    message = json.dumps(caption).encode("utf-8")
-    message_len = len(message)
-    message_len_bytes = message_len.to_bytes(HEADER_SIZE, BYTEORDER)
-    conn.sendall(message_len_bytes)
-    conn.sendall(message)
+    message = {
+        "text": caption["text"] if juror == caption["id"] else "CLEAR",
+        "id": caption["id"],
+    }
+    msg = json.dumps(message).encode("utf-8")
+    msg_len = len(msg)
+    msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
+    conn.sendall(msg_len_bytes)
+    conn.sendall(msg)
 
 
 def serial_monitor(observer: Observer, scheduler: Scheduler) -> str:
@@ -47,14 +51,12 @@ def build_delayed_caption_obs(caption: Dict[str, str]) -> Observable:
 
 
 def main(host: str = HOST, port: int = PORT) -> None:
-    # captions_queue = queue.Queue()
     scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
     captions_observable: Observable = rx.concat_with_iterable(
         build_delayed_caption_obs(caption) for caption in captions.CAPTIONS
     )
     serial_monitor_observable = rx.create(serial_monitor).pipe(
-        ops.subscribe_on(scheduler),
-        ops.distinct_until_changed()
+        ops.subscribe_on(scheduler), ops.distinct_until_changed()
     )
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
