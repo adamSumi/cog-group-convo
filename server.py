@@ -14,6 +14,8 @@ from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
 import vlc
 import qrcode
+import serial
+import serial.tools.list_ports
 
 import captions
 from common import BYTEORDER, HEADER_SIZE, HOST, PORT
@@ -57,14 +59,28 @@ def socket_transmission(message: Dict[str, str], connection: socket.socket) -> N
 
 
 def serial_monitor(
-    observer: Observer, scheduler: Scheduler
-) -> Literal["juror-a", "juror-b", "juror-c", "jury-foreman", None]:
+    selected_serial: serial.Serial,
+) -> Callable[[Observer, Scheduler], None]:
     """
     Reads from the serial monitor, and emits the read value to the provided observer.
     """
-    while True:
-        observer.on_next(random_juror())
-        time.sleep(1)
+
+    def _serial_monitor(observer: Observer, scheduler: Scheduler):
+        with selected_serial as ser:
+            while True:
+                juror_val = ser.readline().decode("ascii").strip()
+                if juror_val == "0":
+                    observer.on_next("juror-a")
+                if juror_val == "1":
+                    observer.on_next("juror-b")
+                if juror_val == "2":
+                    observer.on_next("juror-c")
+                if juror_val == "3":
+                    observer.on_next("jury-foreman")
+                if juror_val == "9":
+                    observer.on_next(None)
+
+    return _serial_monitor
 
 
 def build_delayed_caption_obs(caption: Dict[str, str]) -> Observable:
@@ -116,6 +132,22 @@ def render_connection_qrcode(ip: str, port: int) -> None:
     qr.print_ascii()
 
 
+def select_serial_port() -> serial.Serial:
+    serial_ports = serial.tools.list_ports.comports(include_links=True)
+    print(f"Found {len(serial_ports)} serial ports. Which would you like to choose?")
+    for i, port in enumerate(serial_ports):
+        print(f"[{i}]: {port.device} ({port.description})")
+    selection = input()
+    while (
+        not selection.isnumeric()
+        or int(selection) < 0
+        or int(selection) >= len(serial_ports)
+    ):
+        selection = input(f"Please enter a value from 0-{len(serial_ports)}.")
+    selected_port = serial_ports[int(selection)]
+    return serial.Serial(port=selected_port.device)
+
+
 def main(host: str = HOST, port: int = PORT) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
@@ -123,15 +155,17 @@ def main(host: str = HOST, port: int = PORT) -> None:
     begins transmitting messages to the connected socket. The content of the messages depends
     on the reading taken from the serial monitor (see create_message)
     """
-    logging.debug("Loading VLC videos")
-    players: List[vlc.MediaPlayer] = []
-    for i in range(3):  # range(NUM_JURORS):
-        players.append(load_video_in_vlc(os.path.join("videos", f"{i+1}.mp4")))
+    selected_serial_port = select_serial_port()
+    # logging.debug("Loading VLC videos")
+    # players: List[vlc.MediaPlayer] = []
+    # for i in range(3):  # range(NUM_JURORS):
+    #     players.append(load_video_in_vlc(os.path.join("videos", f"{i+1}.mp4")))
     scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
     captions_observable: Observable = rx.concat_with_iterable(
         build_delayed_caption_obs(caption) for caption in captions.CAPTIONS
     )
-    serial_monitor_observable = rx.create(serial_monitor).pipe(
+    configured_serial_monitor = serial_monitor(selected_serial_port)
+    serial_monitor_observable = rx.create(configured_serial_monitor).pipe(
         ops.subscribe_on(scheduler), ops.distinct_until_changed()
     )
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -141,17 +175,17 @@ def main(host: str = HOST, port: int = PORT) -> None:
         render_connection_qrcode(get_ip(), port)
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
-        for player in players:
-            player.play()
-            player.set_pause(1)
+        # for player in players:
+        #     player.play()
+        #     player.set_pause(1)
         ready = input("Press ENTER to begin the experiment.")
         while ready != EXPECTED_CHARACTER:
             ready = input(
                 "Invalid character received. Press ENTER to begin the experiment."
             )
-        for player in players:
-            player.set_pause(0)
-        time.sleep(1000)
+        # for player in players:
+        #     player.set_pause(0)
+        # time.sleep(1000)
         messages_observable = rx.combine_latest(
             captions_observable,
             serial_monitor_observable,
