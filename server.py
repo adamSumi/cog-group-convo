@@ -6,6 +6,7 @@ import time
 import datetime
 import random
 import socket
+import argparse
 from typing import Callable, Dict, List, Literal, Optional
 
 import rx
@@ -22,6 +23,7 @@ from common import BYTEORDER, HEADER_SIZE, HOST, PORT
 
 EXPECTED_CHARACTER = ""
 NUM_JURORS = 4
+DEFAULT_RENDERING_METHOD = 1
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -56,6 +58,11 @@ def socket_transmission(message: Dict[str, str], connection: socket.socket) -> N
     logging.debug(f"Sending msg")
     connection.sendall(msg)
     logging.debug(f"Socket transmission completed.")
+
+
+def mock_serial_monitor(observer: Observer, scheduler: Scheduler):
+    while True:
+        observer.on_next(random_juror())
 
 
 def serial_monitor(
@@ -119,7 +126,7 @@ def get_ip() -> str:
     return ip
 
 
-def render_connection_qrcode(ip: str, port: int) -> None:
+def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
     connection_str = ip + ":" + str(port)
     logging.debug(f"Glasses should access address: {connection_str}")
     qr = qrcode.QRCode(
@@ -127,7 +134,7 @@ def render_connection_qrcode(ip: str, port: int) -> None:
         error_correction=qrcode.ERROR_CORRECT_L,
         box_size=1,
     )
-    qr.add_data(connection_str)
+    qr.add_data(f"{connection_str} {rendering_method}")
     qr.make(fit=True)
     qr.print_ascii()
 
@@ -148,23 +155,28 @@ def select_serial_port() -> serial.Serial:
     return serial.Serial(port=selected_port.device)
 
 
-def main(host: str = HOST, port: int = PORT) -> None:
+def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
     then establishes a TCP socket and waits for connection. Once a socket connection is received,
     begins transmitting messages to the connected socket. The content of the messages depends
     on the reading taken from the serial monitor (see create_message)
     """
-    selected_serial_port = select_serial_port()
+    scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
+
+    if for_testing:
+        configured_serial_monitor = mock_serial_monitor
+    else:
+        selected_serial_port = select_serial_port()
+        configured_serial_monitor = serial_monitor(selected_serial_port)
+
     # logging.debug("Loading VLC videos")
     # players: List[vlc.MediaPlayer] = []
     # for i in range(3):  # range(NUM_JURORS):
     #     players.append(load_video_in_vlc(os.path.join("videos", f"{i+1}.mp4")))
-    scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
     captions_observable: Observable = rx.concat_with_iterable(
         build_delayed_caption_obs(caption) for caption in captions.CAPTIONS
     )
-    configured_serial_monitor = serial_monitor(selected_serial_port)
     serial_monitor_observable = rx.create(configured_serial_monitor).pipe(
         ops.subscribe_on(scheduler), ops.distinct_until_changed()
     )
@@ -172,7 +184,7 @@ def main(host: str = HOST, port: int = PORT) -> None:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
         sock.listen()
-        render_connection_qrcode(get_ip(), port)
+        render_connection_qrcode(get_ip(), port, rendering_method=rendering_method)
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
         # for player in players:
@@ -196,4 +208,24 @@ def main(host: str = HOST, port: int = PORT) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Server for transmitting captions to a device on the same network."
+    )
+    parser.add_argument(
+        "rendering_method",
+        help="The rendering method to use to render captions on the other device.",
+        default=DEFAULT_RENDERING_METHOD
+    )
+    parser.add_argument(
+        "--host", type=str, default=HOST, help="The host IP to bind to."
+    )
+    parser.add_argument(
+        "--port", type=int, default=PORT, help="The port to run this server on."
+    )
+    parser.add_argument(
+        "--for_testing",
+        action="store_true",
+        help="Whether this server should be trying to connect over serial ports or not.",
+    )
+    args = parser.parse_args()
+    main(args.host, args.port, args.rendering_method, args.for_testing)
