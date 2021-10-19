@@ -1,7 +1,6 @@
 import json
 import logging
 import multiprocessing
-import os
 import time
 import datetime
 import random
@@ -62,6 +61,7 @@ def socket_transmission(message: Dict[str, str], connection: socket.socket) -> N
 
 def mock_serial_monitor(observer: Observer, scheduler: Scheduler):
     while True:
+        time.sleep(random.random())
         observer.on_next(random_juror())
 
 
@@ -97,7 +97,7 @@ def build_delayed_caption_obs(caption: Dict[str, str]) -> Observable:
     TODO: Replace random, hard-coded delay with a delay included in the caption.
     """
     return rx.just(caption).pipe(
-        ops.delay(datetime.timedelta(milliseconds=random.randint(0, 1000)))
+        ops.delay(datetime.timedelta(seconds=random.randint(0, 10)))
     )
 
 
