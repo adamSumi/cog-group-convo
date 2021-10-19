@@ -18,7 +18,7 @@ import serial
 import serial.tools.list_ports
 
 import captions
-from common import BYTEORDER, HEADER_SIZE, HOST, PORT
+from common import BYTEORDER, HEADER_SIZE, PORT
 
 EXPECTED_CHARACTER = ""
 NUM_JURORS = 4
@@ -217,7 +217,7 @@ if __name__ == "__main__":
         default=DEFAULT_RENDERING_METHOD
     )
     parser.add_argument(
-        "--host", type=str, default=HOST, help="The host IP to bind to."
+        "--host", type=str, default=get_ip(), help="The host IP to bind to."
     )
     parser.add_argument(
         "--port", type=int, default=PORT, help="The port to run this server on."
