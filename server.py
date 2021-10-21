@@ -6,7 +6,7 @@ import datetime
 import random
 import socket
 import argparse
-from typing import Callable, Dict, List, Literal, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 import rx
 from rx import operators as ops
@@ -90,14 +90,14 @@ def serial_monitor(
     return _serial_monitor
 
 
-def build_delayed_caption_obs(caption: Dict[str, str]) -> Observable:
+def build_delayed_caption_obs(caption: Dict[str, Any]) -> Observable:
     """
     Takes a caption, and constructs an observable sequence comprised of one caption,
     delayed by a given amount of time.
     TODO: Replace random, hard-coded delay with a delay included in the caption.
     """
     return rx.just(caption).pipe(
-        ops.delay(datetime.timedelta(seconds=random.randint(0, 10)))
+        ops.delay(datetime.timedelta(seconds=caption["duration"]))
     )
 
 

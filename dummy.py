@@ -5,7 +5,6 @@ import multiprocessing
 import rx
 from rx import operators as ops
 from rx.core.typing import Observer, Scheduler, Observable
-from rx.internal.utils import infinite
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
 
 random_juror: Callable[
