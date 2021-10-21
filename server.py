@@ -19,6 +19,7 @@ import serial.tools.list_ports
 
 import captions
 from common import BYTEORDER, HEADER_SIZE, PORT
+from videos import play_videos
 
 EXPECTED_CHARACTER = ""
 NUM_JURORS = 4
@@ -61,7 +62,7 @@ def socket_transmission(message: Dict[str, str], connection: socket.socket) -> N
 
 def mock_serial_monitor(observer: Observer, scheduler: Scheduler):
     while True:
-        time.sleep(random.random())
+        time.sleep((random.random() * 4) + 0.5)
         observer.on_next(random_juror())
 
 
@@ -205,6 +206,9 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         messages_observable.subscribe(
             lambda message: socket_transmission(message, conn)
         )
+        video_process = multiprocessing.Process(target=play_videos)
+        video_process.start()
+        video_process.join()
 
 
 if __name__ == "__main__":
@@ -214,7 +218,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "rendering_method",
         help="The rendering method to use to render captions on the other device.",
-        default=DEFAULT_RENDERING_METHOD
+        default=DEFAULT_RENDERING_METHOD,
     )
     parser.add_argument(
         "--host", type=str, default=get_ip(), help="The host IP to bind to."
