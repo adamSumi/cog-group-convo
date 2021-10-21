@@ -25,7 +25,7 @@ EXPECTED_CHARACTER = ""
 NUM_JURORS = 4
 DEFAULT_RENDERING_METHOD = 1
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 random_juror: Callable[
     [], Literal["juror-a", "juror-b", "juror-c", "jury-foreman", None]
