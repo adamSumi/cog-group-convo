@@ -5,7 +5,7 @@ from typing import List
 
 import cv2
 
-from captions import CAPTIONS
+from whole_captions import CAPTIONS
 
 VIDEO_DIRECTORY = "videos"
 JUROR_A_IDLE_VIDEOS = os.path.join(VIDEO_DIRECTORY, "idle", "juror-a")
@@ -24,7 +24,6 @@ WINDOW_TITLES = ["Juror A", "Juror B", "Juror C", "Jury Foreman"]
 JUROR_TO_INDEX = {"juror-a": 0, "juror-b": 1, "juror-c": 2, "jury-foreman": 3}
 
 INDEX_TO_JUROR = {value: key for key, value in JUROR_TO_INDEX.items()}
-
 
 def get_random_video_from_directory(video_directory: str) -> str:
     return os.path.join(video_directory, random.choice(os.listdir(video_directory)))
@@ -84,6 +83,9 @@ def play_videos():
                         new_speaker_active_video_path = get_active_video_from_index(counter)
                         new_speaker_active_video = cv2.VideoCapture(new_speaker_active_video_path)
                         playing_videos[new_speaker_index] = new_speaker_active_video
+
+                        # Debugging print statement
+                        print(current_caption_info["text"])
 
                         
 

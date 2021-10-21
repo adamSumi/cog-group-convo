@@ -17,7 +17,7 @@ import qrcode
 import serial
 import serial.tools.list_ports
 
-import captions
+import segmented_captions
 from common import BYTEORDER, HEADER_SIZE, PORT
 from videos import play_videos
 
@@ -176,7 +176,7 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
     # for i in range(3):  # range(NUM_JURORS):
     #     players.append(load_video_in_vlc(os.path.join("videos", f"{i+1}.mp4")))
     captions_observable: Observable = rx.concat_with_iterable(
-        build_delayed_caption_obs(caption) for caption in captions.CAPTIONS
+        build_delayed_caption_obs(caption) for caption in segmented_captions.CAPTIONS
     )
     serial_monitor_observable = rx.create(configured_serial_monitor).pipe(
         ops.subscribe_on(scheduler), ops.distinct_until_changed()
