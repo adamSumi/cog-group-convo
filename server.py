@@ -97,7 +97,7 @@ def build_delayed_caption_obs(caption: Dict[str, Any]) -> Observable:
     TODO: Replace random, hard-coded delay with a delay included in the caption.
     """
     return rx.just(caption).pipe(
-        ops.delay(datetime.timedelta(seconds=caption["duration"]))
+        ops.delay(datetime.timedelta(milliseconds=caption["duration"]))
     )
 
 
