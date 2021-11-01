@@ -3,6 +3,7 @@ Scripts involved in simulating a group conversation for people who are deaf or h
 
 ## Prerequisites
 - Python 3.8 should be installed
+- [Git LFS](https://git-lfs.github.com/) should be installed.
 
 ## Setting up
 1. (Optional, but recommended) Make a new virtual environment and activate it:
