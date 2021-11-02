@@ -1,4 +1,5 @@
 from typing import Literal
+
 HEADER_SIZE = 4
 BYTEORDER = "big"
 

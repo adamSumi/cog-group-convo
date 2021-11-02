@@ -9,6 +9,7 @@ import socket
 import time
 from typing import Any, Callable, Dict, Literal
 
+import psutil
 import qrcode
 import rx
 import serial
@@ -16,11 +17,6 @@ import serial.tools.list_ports
 from rx import operators as ops
 from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
-import vlc
-import qrcode
-import serial
-import serial.tools.list_ports
-import psutil
 
 from common import BYTEORDER, HEADER_SIZE, PORT, JurorId
 from videos import play_video
@@ -55,7 +51,7 @@ def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> N
     msg = json.dumps(message).encode("utf-8")
     msg_len = len(msg)
     msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
-    msg_with_header = msg_len_bytes  + msg
+    msg_with_header = msg_len_bytes + msg
     logging.debug(f"Sending msg and length header")
     connection.sendall(msg_with_header)
     logging.debug(f"Socket transmission completed.")
@@ -149,11 +145,12 @@ def select_serial_port() -> serial.Serial:
     selected_port = serial_ports[int(selection)]
     return serial.Serial(port=selected_port.device)
 
+
 def close_qrcode():
-    #After connection is established, kill program displaying qrcode
+    # After connection is established, kill program displaying qrcode
     for proc in psutil.process_iter():
         # print(proc.name())
-        #change name on ubuntu
+        # change name on ubuntu
         if proc.name() == "Microsoft.Photos.exe":
             proc.kill()
 
@@ -174,7 +171,9 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         configured_serial_monitor = serial_monitor(selected_serial_port)
 
     captions = json.load(open(os.path.join("captions", "merged_captions.json"), "r"))
-    captions_observable = rx.merge(*(build_delayed_caption_obs(caption) for caption in captions))
+    captions_observable = rx.merge(
+        *(build_delayed_caption_obs(caption) for caption in captions)
+    )
     serial_monitor_observable: Observable[JurorId] = rx.create(
         configured_serial_monitor
     ).pipe(ops.subscribe_on(scheduler), ops.distinct_until_changed())
