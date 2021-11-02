@@ -17,6 +17,7 @@ import vlc
 import qrcode
 import serial
 import serial.tools.list_ports
+import psutil
 
 import captions
 from common import BYTEORDER, HEADER_SIZE, HOST, PORT
@@ -46,17 +47,19 @@ def create_message(
 
 def socket_transmission(message: Dict[str, str], connection: socket.socket) -> None:
     """
-    Serializes the given message and transmits two messages to the given connection:
-    1. The size of the message (a "header" of sorts)
-    2. The serialized message.
+    Serializes the given message and transmits one message to the given connection with
+    The size of the message (a "header" of sorts) and The serialized message.
     """
     msg = json.dumps(message).encode("utf-8")
     msg_len = len(msg)
     msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
-    logging.debug(f"Sending msg length: {msg_len_bytes}")
-    connection.sendall(msg_len_bytes)
-    logging.debug(f"Sending msg")
-    connection.sendall(msg)
+    # logging.debug(f"Sending msg length: {msg_len_bytes}")
+    # connection.sendall(msg_len_bytes)
+    # logging.debug(f"Sending msg")
+    # connection.sendall(msg)
+    msg_with_header = msg_len_bytes  + msg
+    logging.debug(f"Sending msg and length header")
+    connection.sendall(msg_with_header)
     logging.debug(f"Socket transmission completed.")
 
 
@@ -132,11 +135,14 @@ def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.ERROR_CORRECT_L,
-        box_size=1,
+        box_size=10,
     )
     qr.add_data(f"{connection_str} {rendering_method}")
-    qr.make(fit=True)
-    qr.print_ascii()
+    img = qr.make(fit=True)
+    # qr.print_ascii()
+    img = qr.make_image(fill_color="black", back_color="white")
+    # img.show()
+    return img
 
 
 def select_serial_port() -> serial.Serial:
@@ -184,12 +190,21 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
         sock.listen()
-        render_connection_qrcode(get_ip(), port, rendering_method=rendering_method)
+        img = render_connection_qrcode(get_ip(), port, rendering_method=rendering_method)
+
+        #display qrcode using pil.show()
+        img.show()
+
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
-        # for player in players:
-        #     player.play()
-        #     player.set_pause(1)
+
+        #After connection is established, kill program displaying qrcode
+        for proc in psutil.process_iter():
+            # print(proc.name())
+            #change name on ubuntu
+            if proc.name() == "Microsoft.Photos.exe":
+                proc.kill()
+
         ready = input("Press ENTER to begin the experiment.")
         while ready != EXPECTED_CHARACTER:
             ready = input(
