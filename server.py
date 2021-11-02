@@ -53,10 +53,6 @@ def socket_transmission(message: Dict[str, str], connection: socket.socket) -> N
     msg = json.dumps(message).encode("utf-8")
     msg_len = len(msg)
     msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
-    # logging.debug(f"Sending msg length: {msg_len_bytes}")
-    # connection.sendall(msg_len_bytes)
-    # logging.debug(f"Sending msg")
-    # connection.sendall(msg)
     msg_with_header = msg_len_bytes  + msg
     logging.debug(f"Sending msg and length header")
     connection.sendall(msg_with_header)
@@ -141,8 +137,8 @@ def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
     img = qr.make(fit=True)
     # qr.print_ascii()
     img = qr.make_image(fill_color="black", back_color="white")
-    # img.show()
-    return img
+    img.show()
+    # return img
 
 
 def select_serial_port() -> serial.Serial:
@@ -159,6 +155,14 @@ def select_serial_port() -> serial.Serial:
         selection = input(f"Please enter a value from 0-{len(serial_ports)}.")
     selected_port = serial_ports[int(selection)]
     return serial.Serial(port=selected_port.device)
+
+def close_qrcode():
+    #After connection is established, kill program displaying qrcode
+    for proc in psutil.process_iter():
+        # print(proc.name())
+        #change name on ubuntu
+        if proc.name() == "Microsoft.Photos.exe":
+            proc.kill()
 
 
 def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None:
@@ -190,20 +194,12 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
         sock.listen()
-        img = render_connection_qrcode(get_ip(), port, rendering_method=rendering_method)
-
-        #display qrcode using pil.show()
-        img.show()
+        render_connection_qrcode(get_ip(), port, rendering_method=rendering_method)
 
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
 
-        #After connection is established, kill program displaying qrcode
-        for proc in psutil.process_iter():
-            # print(proc.name())
-            #change name on ubuntu
-            if proc.name() == "Microsoft.Photos.exe":
-                proc.kill()
+        close_qrcode()
 
         ready = input("Press ENTER to begin the experiment.")
         while ready != EXPECTED_CHARACTER:
