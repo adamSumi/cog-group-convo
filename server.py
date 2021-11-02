@@ -1,15 +1,18 @@
+import argparse
+import datetime
 import json
 import logging
 import multiprocessing
 import os
-import time
-import datetime
 import random
 import socket
-import argparse
-from typing import Callable, Dict, List, Literal, Optional
+import time
+from typing import Any, Callable, Dict, Literal
 
+import qrcode
 import rx
+import serial
+import serial.tools.list_ports
 from rx import operators as ops
 from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
@@ -19,8 +22,8 @@ import serial
 import serial.tools.list_ports
 import psutil
 
-import captions
-from common import BYTEORDER, HEADER_SIZE, HOST, PORT
+from common import BYTEORDER, HEADER_SIZE, PORT, JurorId
+from videos import play_video
 
 EXPECTED_CHARACTER = ""
 NUM_JURORS = 4
@@ -28,24 +31,23 @@ DEFAULT_RENDERING_METHOD = 1
 
 logging.basicConfig(level=logging.DEBUG)
 
-random_juror: Callable[
-    [], Literal["juror-a", "juror-b", "juror-c", "jury-foreman", None]
-] = lambda: random.choice(["juror-a", "juror-b", "juror-c", "jury-foreman", None])
 
-
-def create_message(
-    caption: Dict[str, str], juror_being_looked_at: Optional[str]
-) -> Dict[str, str]:
-    logging.debug(f"juror={juror_being_looked_at}, caption['id']={caption['id']}")
+def create_message(caption: Dict[str, Any], juror_being_looked_at) -> Dict[str, Any]:
+    logging.debug(
+        f"juror={juror_being_looked_at}, caption['speaker_id']={caption['speaker_id']}"
+    )
     message = {
-        "text": caption["text"] if juror_being_looked_at == caption["id"] else "CLEAR",
-        "id": caption["id"],
+        "message_id": caption["message_id"],
+        "chunk_id": caption["chunk_id"],
+        "text": caption["text"],
+        "speaker_id": caption["speaker_id"],
+        "focused_id": juror_being_looked_at,
     }
     logging.debug(f"message={message}")
     return message
 
 
-def socket_transmission(message: Dict[str, str], connection: socket.socket) -> None:
+def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> None:
     """
     Serializes the given message and transmits one message to the given connection with
     The size of the message (a "header" of sorts) and The serialized message.
@@ -59,9 +61,13 @@ def socket_transmission(message: Dict[str, str], connection: socket.socket) -> N
     logging.debug(f"Socket transmission completed.")
 
 
-def mock_serial_monitor(observer: Observer, scheduler: Scheduler):
+def mock_serial_monitor(observer: Observer, scheduler: Scheduler) -> None:
     while True:
-        observer.on_next(random_juror())
+        time.sleep((random.random() * 4) + 0.5)
+        observer.on_next(
+            # random.choice(["juror-a", "juror-b", "juror-c", "jury-foreman", None])
+            "juror-a"
+        )
 
 
 def serial_monitor(
@@ -89,27 +95,14 @@ def serial_monitor(
     return _serial_monitor
 
 
-def build_delayed_caption_obs(caption: Dict[str, str]) -> Observable:
+def build_delayed_caption_obs(caption: Dict[str, Any]) -> Observable:
     """
     Takes a caption, and constructs an observable sequence comprised of one caption,
     delayed by a given amount of time.
-    TODO: Replace random, hard-coded delay with a delay included in the caption.
     """
     return rx.just(caption).pipe(
-        ops.delay(datetime.timedelta(milliseconds=random.randint(0, 1000)))
+        ops.delay(datetime.timedelta(milliseconds=caption["delay"]))
     )
-
-
-def load_video_in_vlc(
-    video_path: str, shared_vlc_instance: Optional[vlc.Instance] = None
-) -> vlc.MediaPlayer:
-    vlc_instance: vlc.Instance = (
-        vlc.Instance() if not shared_vlc_instance else shared_vlc_instance
-    )
-    player: vlc.MediaPlayer = vlc_instance.media_player_new()
-    media = vlc_instance.media_new(video_path)
-    player.set_media(media)
-    return player
 
 
 def get_ip() -> str:
@@ -180,16 +173,11 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         selected_serial_port = select_serial_port()
         configured_serial_monitor = serial_monitor(selected_serial_port)
 
-    # logging.debug("Loading VLC videos")
-    # players: List[vlc.MediaPlayer] = []
-    # for i in range(3):  # range(NUM_JURORS):
-    #     players.append(load_video_in_vlc(os.path.join("videos", f"{i+1}.mp4")))
-    captions_observable: Observable = rx.concat_with_iterable(
-        build_delayed_caption_obs(caption) for caption in captions.CAPTIONS
-    )
-    serial_monitor_observable = rx.create(configured_serial_monitor).pipe(
-        ops.subscribe_on(scheduler), ops.distinct_until_changed()
-    )
+    captions = json.load(open(os.path.join("captions", "merged_captions.json"), "r"))
+    captions_observable = rx.merge(*(build_delayed_caption_obs(caption) for caption in captions))
+    serial_monitor_observable: Observable[JurorId] = rx.create(
+        configured_serial_monitor
+    ).pipe(ops.subscribe_on(scheduler), ops.distinct_until_changed())
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
@@ -201,21 +189,55 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
 
         close_qrcode()
 
+        messages_observable = rx.combine_latest(
+            captions_observable,
+            serial_monitor_observable,
+        ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
+        ready_to_start_playback = multiprocessing.Event()
+
+        video_processes = [
+            multiprocessing.Process(
+                target=play_video,
+                args=(
+                    os.path.join("videos", "juror-a.mp4"),
+                    ready_to_start_playback,
+                ),
+            ),
+            multiprocessing.Process(
+                target=play_video,
+                args=(
+                    os.path.join("videos", "juror-b.mp4"),
+                    ready_to_start_playback,
+                ),
+            ),
+            multiprocessing.Process(
+                target=play_video,
+                args=(
+                    os.path.join("videos", "juror-c.mp4"),
+                    ready_to_start_playback,
+                ),
+            ),
+            multiprocessing.Process(
+                target=play_video,
+                args=(
+                    os.path.join("videos", "jury-foreman.mp4"),
+                    ready_to_start_playback,
+                ),
+            ),
+        ]
+        for video_process in video_processes:
+            video_process.start()
         ready = input("Press ENTER to begin the experiment.")
         while ready != EXPECTED_CHARACTER:
             ready = input(
                 "Invalid character received. Press ENTER to begin the experiment."
             )
-        # for player in players:
-        #     player.set_pause(0)
-        # time.sleep(1000)
-        messages_observable = rx.combine_latest(
-            captions_observable,
-            serial_monitor_observable,
-        ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
+        ready_to_start_playback.set()
         messages_observable.subscribe(
-            lambda message: socket_transmission(message, conn)
+            lambda message: socket_transmission(message, conn), on_error=print
         )
+        for video_process in video_processes:
+            video_process.join()
 
 
 if __name__ == "__main__":
@@ -225,10 +247,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "rendering_method",
         help="The rendering method to use to render captions on the other device.",
-        default=DEFAULT_RENDERING_METHOD
+        default=DEFAULT_RENDERING_METHOD,
     )
     parser.add_argument(
-        "--host", type=str, default=HOST, help="The host IP to bind to."
+        "--host", type=str, default=get_ip(), help="The host IP to bind to."
     )
     parser.add_argument(
         "--port", type=int, default=PORT, help="The port to run this server on."
