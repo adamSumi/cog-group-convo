@@ -126,7 +126,9 @@ def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
     img = qr.make(fit=True)
     # qr.print_ascii()
     img = qr.make_image(fill_color="black", back_color="white")
+    logging.debug("Showing image...")
     img.show()
+    logging.debug("Image shown.")
     # return img
 
 
@@ -151,7 +153,7 @@ def close_qrcode():
     for proc in psutil.process_iter():
         # print(proc.name())
         # change name on ubuntu
-        if proc.name() == "Microsoft.Photos.exe":
+        if proc.name() == "Microsoft.Photos.exe" or proc.name() == "display":
             proc.kill()
 
 
