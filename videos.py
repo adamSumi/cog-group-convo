@@ -3,7 +3,11 @@ import time
 import multiprocessing
 
 
-def play_video(video_path: str, ready_to_start_playing: multiprocessing.Event, is_muted:bool=True):
+def play_video(
+    video_path: str,
+    ready_to_start_playing: multiprocessing.Event,
+    is_muted: bool = True,
+):
     instance: vlc.Instance = vlc.Instance()
     media_player: vlc.MediaPlayer = instance.media_player_new()
     media: vlc.Media = instance.media_new(video_path)

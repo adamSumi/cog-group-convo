@@ -9,6 +9,7 @@ import socket
 import time
 from typing import Any, Callable, Dict, Literal
 
+import psutil
 import qrcode
 import rx
 import serial
@@ -44,17 +45,15 @@ def create_message(caption: Dict[str, Any], juror_being_looked_at) -> Dict[str, 
 
 def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> None:
     """
-    Serializes the given message and transmits two messages to the given connection:
-    1. The size of the message (a "header" of sorts)
-    2. The serialized message.
+    Serializes the given message and transmits one message to the given connection with
+    The size of the message (a "header" of sorts) and The serialized message.
     """
     msg = json.dumps(message).encode("utf-8")
     msg_len = len(msg)
     msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
-    logging.debug(f"Sending msg length: {msg_len_bytes}")
-    connection.sendall(msg_len_bytes)
-    logging.debug(f"Sending msg")
-    connection.sendall(msg)
+    msg_with_header = msg_len_bytes + msg
+    logging.debug(f"Sending msg and length header")
+    connection.sendall(msg_with_header)
     logging.debug(f"Socket transmission completed.")
 
 
@@ -121,11 +120,14 @@ def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.ERROR_CORRECT_L,
-        box_size=1,
+        box_size=10,
     )
     qr.add_data(f"{connection_str} {rendering_method}")
-    qr.make(fit=True)
-    qr.print_ascii()
+    img = qr.make(fit=True)
+    # qr.print_ascii()
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.show()
+    # return img
 
 
 def select_serial_port() -> serial.Serial:
@@ -144,6 +146,15 @@ def select_serial_port() -> serial.Serial:
     return serial.Serial(port=selected_port.device)
 
 
+def close_qrcode():
+    # After connection is established, kill program displaying qrcode
+    for proc in psutil.process_iter():
+        # print(proc.name())
+        # change name on ubuntu
+        if proc.name() == "Microsoft.Photos.exe":
+            proc.kill()
+
+
 def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
@@ -160,7 +171,9 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         configured_serial_monitor = serial_monitor(selected_serial_port)
 
     captions = json.load(open(os.path.join("captions", "merged_captions.json"), "r"))
-    captions_observable = rx.merge(*(build_delayed_caption_obs(caption) for caption in captions))
+    captions_observable = rx.merge(
+        *(build_delayed_caption_obs(caption) for caption in captions)
+    )
     serial_monitor_observable: Observable[JurorId] = rx.create(
         configured_serial_monitor
     ).pipe(ops.subscribe_on(scheduler), ops.distinct_until_changed())
@@ -169,8 +182,12 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         sock.bind((host, port))
         sock.listen()
         render_connection_qrcode(get_ip(), port, rendering_method=rendering_method)
+
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
+
+        close_qrcode()
+
         messages_observable = rx.combine_latest(
             captions_observable,
             serial_monitor_observable,
