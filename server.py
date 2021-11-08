@@ -151,9 +151,12 @@ def select_serial_port() -> serial.Serial:
 def close_qrcode():
     # After connection is established, kill program displaying qrcode
     for proc in psutil.process_iter():
-        # print(proc.name())
         # change name on ubuntu
-        if proc.name() == "Microsoft.Photos.exe" or proc.name() == "display":
+        if proc.name() == "Microsoft.Photos.exe" or proc.name() in [
+            "display",
+            "eog",
+            "xv",
+        ]:
             proc.kill()
 
 
