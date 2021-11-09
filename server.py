@@ -261,10 +261,11 @@ def main(
             ready = input(
                 "Invalid character received. Press ENTER to begin the experiment."
             )
-        ready_to_start_playback.set()
         messages_observable.subscribe(
             lambda message: socket_transmission(message, conn), on_error=print
         )
+        ready_to_start_playback.set()
+
         for video_process in video_processes:
             video_process.join()
 
