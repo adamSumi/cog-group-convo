@@ -8,6 +8,7 @@ import random
 import socket
 import time
 from typing import Any, Callable, Dict, Literal
+from enum import IntEnum
 
 import psutil
 import qrcode
@@ -18,12 +19,11 @@ from rx import operators as ops
 from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
 
-from common import BYTEORDER, HEADER_SIZE, PORT, JurorId
+from common import BYTEORDER, HEADER_SIZE, PORT, JurorId, RenderingMethod
 from videos import play_video
 
 EXPECTED_CHARACTER = ""
 NUM_JURORS = 4
-DEFAULT_RENDERING_METHOD = 1
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -114,7 +114,9 @@ def get_ip() -> str:
     return ip
 
 
-def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
+def render_connection_qrcode(
+    ip: str, port: int, rendering_method: RenderingMethod
+) -> None:
     connection_str = ip + ":" + str(port)
     logging.debug(f"Glasses should access address: {connection_str}")
     qr = qrcode.QRCode(
@@ -122,7 +124,7 @@ def render_connection_qrcode(ip: str, port: int, rendering_method: int) -> None:
         error_correction=qrcode.ERROR_CORRECT_L,
         box_size=10,
     )
-    qr.add_data(f"{connection_str} {rendering_method}")
+    qr.add_data(f"{connection_str} {rendering_method.value}")
     img = qr.make(fit=True)
     # qr.print_ascii()
     img = qr.make_image(fill_color="black", back_color="white")
@@ -160,7 +162,9 @@ def close_qrcode():
             proc.kill()
 
 
-def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None:
+def main(
+    host: str, port: int, rendering_method: RenderingMethod, for_testing: bool
+) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
     then establishes a TCP socket and waits for connection. Once a socket connection is received,
@@ -199,12 +203,27 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
         ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
         ready_to_start_playback = multiprocessing.Event()
 
+        juror_a_captions = (
+            f'file://{os.path.abspath(os.path.join("captions", "juror-a.webvtt"))}'
+        )
+        juror_b_captions = (
+            f'file://{os.path.abspath(os.path.join("captions", "juror-b.webvtt"))}'
+        )
+        juror_c_captions = (
+            f'file://{os.path.abspath(os.path.join("captions", "juror-c.webvtt"))}'
+        )
+        jury_foreman_captions = (
+            f'file://{os.path.abspath(os.path.join("captions", "jury-foreman.webvtt"))}'
+        )
+
         video_processes = [
             multiprocessing.Process(
                 target=play_video,
                 args=(
                     os.path.join("videos", "juror-a.mp4"),
                     ready_to_start_playback,
+                    rendering_method,
+                    juror_a_captions,
                 ),
             ),
             multiprocessing.Process(
@@ -212,6 +231,8 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
                 args=(
                     os.path.join("videos", "juror-b.mp4"),
                     ready_to_start_playback,
+                    rendering_method,
+                    juror_b_captions,
                 ),
             ),
             multiprocessing.Process(
@@ -219,6 +240,8 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
                 args=(
                     os.path.join("videos", "juror-c.mp4"),
                     ready_to_start_playback,
+                    rendering_method,
+                    juror_c_captions,
                 ),
             ),
             multiprocessing.Process(
@@ -226,6 +249,8 @@ def main(host: str, port: int, rendering_method: int, for_testing: bool) -> None
                 args=(
                     os.path.join("videos", "jury-foreman.mp4"),
                     ready_to_start_playback,
+                    rendering_method,
+                    jury_foreman_captions,
                 ),
             ),
         ]
@@ -251,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "rendering_method",
         help="The rendering method to use to render captions on the other device.",
-        default=DEFAULT_RENDERING_METHOD,
+        type=lambda x: RenderingMethod(int(x)),
     )
     parser.add_argument(
         "--host", type=str, default=get_ip(), help="The host IP to bind to."
