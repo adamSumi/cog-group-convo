@@ -8,6 +8,7 @@ import random
 import socket
 import time
 from typing import Any, Callable, Dict, Literal
+import traceback
 from enum import IntEnum
 
 import psutil
@@ -39,7 +40,7 @@ def create_message(caption: Dict[str, Any], juror_being_looked_at) -> Dict[str, 
         "speaker_id": caption["speaker_id"],
         "focused_id": juror_being_looked_at,
     }
-    logging.debug(f"message={message}")
+    # logging.debug(f"message={message}")
     return message
 
 
@@ -52,17 +53,15 @@ def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> N
     msg_len = len(msg)
     msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
     msg_with_header = msg_len_bytes + msg
-    logging.debug(f"Sending msg and length header")
     connection.sendall(msg_with_header)
-    logging.debug(f"Socket transmission completed.")
 
 
 def mock_serial_monitor(observer: Observer, scheduler: Scheduler) -> None:
     while True:
         time.sleep((random.random() * 4) + 0.5)
         observer.on_next(
-            # random.choice(["juror-a", "juror-b", "juror-c", "jury-foreman", None])
-            "juror-a"
+            random.choice(["juror-a", "juror-b", "juror-c", "jury-foreman", None])
+            # "juror-a"
         )
 
 
@@ -89,6 +88,23 @@ def serial_monitor(
                     observer.on_next(None)
 
     return _serial_monitor
+
+
+def update_caption_visibility(
+    juror_captions_visible: multiprocessing.Event,
+    juror_id: JurorId,
+):
+    def action(message: Dict[str, Any]):
+        if (
+            message["speaker_id"] == message["focused_id"]
+            and message["speaker_id"] == juror_id
+        ):
+            juror_captions_visible.set()
+        else:
+            juror_captions_visible.clear()
+        return message
+
+    return action
 
 
 def build_delayed_caption_obs(caption: Dict[str, Any]) -> Observable:
@@ -202,6 +218,10 @@ def main(
             serial_monitor_observable,
         ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
         ready_to_start_playback = multiprocessing.Event()
+        juror_a_captions_visible = multiprocessing.Event()
+        juror_b_captions_visible = multiprocessing.Event()
+        juror_c_captions_visible = multiprocessing.Event()
+        jury_foreman_captions_visible = multiprocessing.Event()
 
         juror_a_captions = (
             f'file://{os.path.abspath(os.path.join("captions", "juror-a.webvtt"))}'
@@ -224,6 +244,8 @@ def main(
                     ready_to_start_playback,
                     rendering_method,
                     juror_a_captions,
+                    juror_a_captions_visible,
+                    False,
                 ),
             ),
             multiprocessing.Process(
@@ -233,6 +255,8 @@ def main(
                     ready_to_start_playback,
                     rendering_method,
                     juror_b_captions,
+                    juror_b_captions_visible,
+                    False,
                 ),
             ),
             multiprocessing.Process(
@@ -242,6 +266,8 @@ def main(
                     ready_to_start_playback,
                     rendering_method,
                     juror_c_captions,
+                    juror_c_captions_visible,
+                    False,
                 ),
             ),
             multiprocessing.Process(
@@ -251,6 +277,7 @@ def main(
                     ready_to_start_playback,
                     rendering_method,
                     jury_foreman_captions,
+                    jury_foreman_captions_visible,
                 ),
             ),
         ]
@@ -261,8 +288,39 @@ def main(
             ready = input(
                 "Invalid character received. Press ENTER to begin the experiment."
             )
+        if rendering_method in (
+            RenderingMethod.MONITOR_ONLY,
+            RenderingMethod.MONITOR_AND_GLOBAL,
+            RenderingMethod.MONITOR_AND_GLOBAL_WITH_DIRECTION_INDICATORS,
+        ):
+            # If we're using a rendering method where focus is important, we need to set the events
+            # indicating that captions should be rendered.
+            # update_juror_a_caption_visibility = update_caption_visibility(
+            #     juror_a_captions_visible, "juror-a"
+            # )
+            # update_juror_b_caption_visibility = update_caption_visibility(
+            #     juror_b_captions_visible, "juror-b"
+            # )
+            # update_juror_c_caption_visibility = update_caption_visibility(
+            #     juror_c_captions_visible, "juror-c"
+            # )
+            # update_jury_foreman_caption_visibility = update_caption_visibility(
+            #     jury_foreman_captions_visible, "jury-foreman"
+            # )
+            # messages_observable = messages_observable.pipe(
+            #     ops.do_action(on_next=update_juror_a_caption_visibility),
+            #     ops.do_action(update_juror_b_caption_visibility),
+            #     ops.do_action(update_juror_c_caption_visibility),
+            #     ops.do_action(update_jury_foreman_caption_visibility),
+            # )
+            juror_a_captions_visible.set()
+            juror_b_captions_visible.set()
+            juror_c_captions_visible.set()
+            jury_foreman_captions_visible.set()
+
         messages_observable.subscribe(
-            lambda message: socket_transmission(message, conn), on_error=print
+            lambda message: socket_transmission(message, conn),
+            on_error=lambda e: traceback.print_tb(e.__traceback__),
         )
         ready_to_start_playback.set()
 
