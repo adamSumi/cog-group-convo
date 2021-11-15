@@ -8,6 +8,7 @@ HOST = "127.0.0.1"
 PORT = 65432
 JurorId = Literal["juror-a", "juror-b", "juror-c", "jury-foreman", None]
 
+
 class RenderingMethod(IntEnum):
     MONITOR_ONLY = 1
     GLOBAL_ONLY = 2
