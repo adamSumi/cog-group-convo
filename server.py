@@ -18,12 +18,68 @@ import serial.tools.list_ports
 from rx import operators as ops
 from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
+import vlc
 
 from common import BYTEORDER, HEADER_SIZE, PORT, JurorId, RenderingMethod
-from videos import play_video
+from videos import get_audio_devices, play_video
 
 EXPECTED_CHARACTER = ""
-NUM_JURORS = 4
+
+JUROR_A_VIDEO = os.path.join("videos", "juror-a.mp4")
+JUROR_B_VIDEO = os.path.join("videos", "juror-b.mp4")
+JUROR_C_VIDEO = os.path.join("videos", "juror-c.mp4")
+JURY_FOREMAN_VIDEO = os.path.join("videos", "jury-foreman.mp4")
+
+JUROR_A_CAPTIONS_PATH = (
+    f'file://{os.path.abspath(os.path.join("captions", "juror-a.webvtt"))}'
+)
+JUROR_B_CAPTIONS_PATH = (
+    f'file://{os.path.abspath(os.path.join("captions", "juror-b.webvtt"))}'
+)
+JUROR_C_CAPTIONS_PATH = (
+    f'file://{os.path.abspath(os.path.join("captions", "juror-c.webvtt"))}'
+)
+JURY_FOREMAN_CAPTIONS_PATH = (
+    f'file://{os.path.abspath(os.path.join("captions", "jury-foreman.webvtt"))}'
+)
+
+caption_visibility = multiprocessing.Event()
+
+JUROR_A_AUDIO_OUTPUT = b"alsa_output.pci-0000_00_1f.3.analog-stereo"
+JUROR_B_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
+JUROR_C_AUDIO_OUTPUT = b"alsa_output.pci-0000_00_1f.3.analog-stereo"
+JURY_FOREMAN_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
+
+CONFIGURATION = [
+    (
+        JUROR_A_VIDEO,
+        JUROR_A_CAPTIONS_PATH,
+        caption_visibility,
+        JUROR_A_AUDIO_OUTPUT,
+        False,
+    ),
+    (
+        JUROR_B_VIDEO,
+        JUROR_B_CAPTIONS_PATH,
+        caption_visibility,
+        JUROR_B_AUDIO_OUTPUT,
+        False,
+    ),
+    (
+        JUROR_C_VIDEO,
+        JUROR_C_CAPTIONS_PATH,
+        caption_visibility,
+        JUROR_C_AUDIO_OUTPUT,
+        False,
+    ),
+    (
+        JURY_FOREMAN_VIDEO,
+        JURY_FOREMAN_CAPTIONS_PATH,
+        caption_visibility,
+        JURY_FOREMAN_AUDIO_OUTPUT,
+        False,
+    ),
+]
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -187,6 +243,7 @@ def main(
     on the reading taken from the serial monitor (see create_message)
     """
     scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
+    # return
 
     if for_testing:
         configured_serial_monitor = mock_serial_monitor
@@ -194,9 +251,11 @@ def main(
         selected_serial_port = select_serial_port()
         configured_serial_monitor = serial_monitor(selected_serial_port)
 
-    captions = json.load(open(os.path.join("captions", "merged_captions.json"), "r"))
-    captions_observable = rx.merge(
-        *(build_delayed_caption_obs(caption) for caption in captions)
+    merged_captions = json.load(
+        open(os.path.join("captions", "merged_captions.json"), "r")
+    )
+    merged_captions_observable = rx.merge(
+        *(build_delayed_caption_obs(caption) for caption in merged_captions)
     )
     serial_monitor_observable: Observable[JurorId] = rx.create(
         configured_serial_monitor
@@ -213,73 +272,33 @@ def main(
         close_qrcode()
 
         messages_observable = rx.combine_latest(
-            captions_observable,
+            merged_captions_observable,
             serial_monitor_observable,
         ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
+
         ready_to_start_playback = multiprocessing.Event()
-        juror_a_captions_visible = multiprocessing.Event()
-        juror_b_captions_visible = multiprocessing.Event()
-        juror_c_captions_visible = multiprocessing.Event()
-        jury_foreman_captions_visible = multiprocessing.Event()
 
-        juror_a_captions = (
-            f'file://{os.path.abspath(os.path.join("captions", "juror-a.webvtt"))}'
-        )
-        juror_b_captions = (
-            f'file://{os.path.abspath(os.path.join("captions", "juror-b.webvtt"))}'
-        )
-        juror_c_captions = (
-            f'file://{os.path.abspath(os.path.join("captions", "juror-c.webvtt"))}'
-        )
-        jury_foreman_captions = (
-            f'file://{os.path.abspath(os.path.join("captions", "jury-foreman.webvtt"))}'
-        )
-
-        video_processes = [
-            multiprocessing.Process(
-                target=play_video,
-                args=(
-                    os.path.join("videos", "juror-a.mp4"),
-                    ready_to_start_playback,
-                    rendering_method,
-                    juror_a_captions,
-                    juror_a_captions_visible,
-                    False,
-                ),
-            ),
-            multiprocessing.Process(
-                target=play_video,
-                args=(
-                    os.path.join("videos", "juror-b.mp4"),
-                    ready_to_start_playback,
-                    rendering_method,
-                    juror_b_captions,
-                    juror_b_captions_visible,
-                    False,
-                ),
-            ),
-            multiprocessing.Process(
-                target=play_video,
-                args=(
-                    os.path.join("videos", "juror-c.mp4"),
-                    ready_to_start_playback,
-                    rendering_method,
-                    juror_c_captions,
-                    juror_c_captions_visible,
-                    False,
-                ),
-            ),
-            multiprocessing.Process(
-                target=play_video,
-                args=(
-                    os.path.join("videos", "jury-foreman.mp4"),
-                    ready_to_start_playback,
-                    rendering_method,
-                    jury_foreman_captions,
-                    jury_foreman_captions_visible,
-                ),
-            ),
-        ]
+        video_processes = []
+        for (
+            video_path,
+            captions_path,
+            caption_visibility,
+            audio_output,
+            is_muted,
+        ) in CONFIGURATION:
+            video_processes.append(
+                multiprocessing.Process(
+                    target=play_video,
+                    args=(
+                        video_path,
+                        ready_to_start_playback,
+                        captions_path,
+                        caption_visibility,
+                        audio_output,
+                        is_muted,
+                    ),
+                )
+            )
         for video_process in video_processes:
             video_process.start()
         ready = input("Press ENTER to begin the experiment.")
@@ -292,30 +311,7 @@ def main(
             RenderingMethod.MONITOR_AND_GLOBAL,
             RenderingMethod.MONITOR_AND_GLOBAL_WITH_DIRECTION_INDICATORS,
         ):
-            # If we're using a rendering method where focus is important, we need to set the events
-            # indicating that captions should be rendered.
-            # update_juror_a_caption_visibility = update_caption_visibility(
-            #     juror_a_captions_visible, "juror-a"
-            # )
-            # update_juror_b_caption_visibility = update_caption_visibility(
-            #     juror_b_captions_visible, "juror-b"
-            # )
-            # update_juror_c_caption_visibility = update_caption_visibility(
-            #     juror_c_captions_visible, "juror-c"
-            # )
-            # update_jury_foreman_caption_visibility = update_caption_visibility(
-            #     jury_foreman_captions_visible, "jury-foreman"
-            # )
-            # messages_observable = messages_observable.pipe(
-            #     ops.do_action(on_next=update_juror_a_caption_visibility),
-            #     ops.do_action(update_juror_b_caption_visibility),
-            #     ops.do_action(update_juror_c_caption_visibility),
-            #     ops.do_action(update_jury_foreman_caption_visibility),
-            # )
-            juror_a_captions_visible.set()
-            juror_b_captions_visible.set()
-            juror_c_captions_visible.set()
-            jury_foreman_captions_visible.set()
+            caption_visibility.set()
 
         messages_observable.subscribe(
             lambda message: socket_transmission(message, conn),
@@ -328,6 +324,7 @@ def main(
 
 
 if __name__ == "__main__":
+    os.environ["VLC_VERBOSE"] = str("-1")
     parser = argparse.ArgumentParser(
         description="Server for transmitting captions to a device on the same network."
     )
