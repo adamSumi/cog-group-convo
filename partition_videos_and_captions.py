@@ -22,15 +22,9 @@ def shift_caption(caption: Caption, offset: int) -> Caption:
 
 
 def main():
-    juror_a_webvtt: webvtt.WebVTT = webvtt.read(
-        os.path.join("captions", "juror-a.vtt")
-    )
-    juror_b_webvtt: webvtt.WebVTT = webvtt.read(
-        os.path.join("captions", "juror-b.vtt")
-    )
-    juror_c_webvtt: webvtt.WebVTT = webvtt.read(
-        os.path.join("captions", "juror-c.vtt")
-    )
+    juror_a_webvtt: webvtt.WebVTT = webvtt.read(os.path.join("captions", "juror-a.vtt"))
+    juror_b_webvtt: webvtt.WebVTT = webvtt.read(os.path.join("captions", "juror-b.vtt"))
+    juror_c_webvtt: webvtt.WebVTT = webvtt.read(os.path.join("captions", "juror-c.vtt"))
     jury_foreman_webvtt: webvtt.WebVTT = webvtt.read(
         os.path.join("captions", "jury-foreman.vtt")
     )
@@ -83,19 +77,21 @@ def main():
         jury_foreman_partition_webvtt.save()
 
         subprocess.call(
-            f"ffmpeg -i videos/juror-a.mp4 -ss {start_timestamp} -to {end_timestamp} -c copy videos/juror-a.{i}.mp4",
+            f"ffmpeg -err_detect ignore_err -i videos/juror-a.mp4 -ss {start_timestamp} -to {end_timestamp} -c copy videos/juror-a.{i}.mp4",
+            shell=True,
+        )
+
+        subprocess.call(
+            f"ffmpeg -err_detect ignore_err -i videos/juror-b.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/juror-b.{i}.mp4",
+            shell=True,
+        )
+
+        subprocess.call(
+            f"ffmpeg -err_detect ignore_err -i videos/juror-c.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/juror-c.{i}.mp4",
             shell=True,
         )
         subprocess.call(
-            f"ffmpeg -i videos/juror-b.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/juror-b.{i}.mp4",
-            shell=True,
-        )
-        subprocess.call(
-            f"ffmpeg -i videos/juror-c.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/juror-c.{i}.mp4",
-            shell=True,
-        )
-        subprocess.call(
-            f"ffmpeg -i videos/jury-foreman.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/jury-foreman.{i}.mp4",
+            f"ffmpeg -err_detect ignore_err -i videos/jury-foreman.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/jury-foreman.{i}.mp4",
             shell=True,
         )
 
