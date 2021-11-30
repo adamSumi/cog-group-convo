@@ -7,7 +7,7 @@ import os
 import random
 import socket
 import time
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Literal
 import traceback
 
 import psutil
@@ -25,22 +25,28 @@ from videos import get_audio_devices, play_video
 
 EXPECTED_CHARACTER = ""
 
-JUROR_A_VIDEO = os.path.join("videos", "juror-a.mp4")
-JUROR_B_VIDEO = os.path.join("videos", "juror-b.mp4")
-JUROR_C_VIDEO = os.path.join("videos", "juror-c.mp4")
-JURY_FOREMAN_VIDEO = os.path.join("videos", "jury-foreman.mp4")
+JUROR_A_VIDEOS = [os.path.join("videos", f"juror-a.{i+1}.mp4") for i in range(4)]
+JUROR_B_VIDEOS = [os.path.join("videos", f"juror-b.{i+1}.mp4") for i in range(4)]
+JUROR_C_VIDEOS = [os.path.join("videos", f"juror-c.{i+1}.mp4") for i in range(4)]
+JURY_FOREMAN_VIDEOS = [
+    os.path.join("videos", f"jury-foreman.{i+1}.mp4") for i in range(4)
+]
+# JUROR_A_VIDEO = os.path.join("videos", "juror-a.mp4")
+# JUROR_B_VIDEO = os.path.join("videos", "juror-b.mp4")
+# JUROR_C_VIDEO = os.path.join("videos", "juror-c.mp4")
+# JURY_FOREMAN_VIDEO = os.path.join("videos", "jury-foreman.mp4")
 
 JUROR_A_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "juror-a.webvtt"))}'
+    f'file://{os.path.abspath(os.path.join("captions", "juror-a.vtt"))}'
 )
 JUROR_B_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "juror-b.webvtt"))}'
+    f'file://{os.path.abspath(os.path.join("captions", "juror-b.vtt"))}'
 )
 JUROR_C_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "juror-c.webvtt"))}'
+    f'file://{os.path.abspath(os.path.join("captions", "juror-c.vtt"))}'
 )
 JURY_FOREMAN_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "jury-foreman.webvtt"))}'
+    f'file://{os.path.abspath(os.path.join("captions", "jury-foreman.vtt"))}'
 )
 
 caption_visibility = multiprocessing.Event()
@@ -52,28 +58,24 @@ JURY_FOREMAN_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
 
 CONFIGURATION = [
     (
-        JUROR_A_VIDEO,
         JUROR_A_CAPTIONS_PATH,
         caption_visibility,
         JUROR_A_AUDIO_OUTPUT,
         False,
     ),
     (
-        JUROR_B_VIDEO,
         JUROR_B_CAPTIONS_PATH,
         caption_visibility,
         JUROR_B_AUDIO_OUTPUT,
         False,
     ),
     (
-        JUROR_C_VIDEO,
         JUROR_C_CAPTIONS_PATH,
         caption_visibility,
         JUROR_C_AUDIO_OUTPUT,
         False,
     ),
     (
-        JURY_FOREMAN_VIDEO,
         JURY_FOREMAN_CAPTIONS_PATH,
         caption_visibility,
         JURY_FOREMAN_AUDIO_OUTPUT,
@@ -234,7 +236,11 @@ def close_qrcode():
 
 
 def main(
-    host: str, port: int, rendering_method: RenderingMethod, for_testing: bool
+    host: str,
+    port: int,
+    rendering_method: RenderingMethod,
+    partition: Literal[1, 2, 3, 4],
+    for_testing: bool,
 ) -> None:
     """
     Constructs observables from the pre-defined list of captions and the serial monitor input,
@@ -252,7 +258,7 @@ def main(
         configured_serial_monitor = serial_monitor(selected_serial_port)
 
     merged_captions = json.load(
-        open(os.path.join("captions", "merged_captions.json"), "r")
+        open(os.path.join("captions", f"merged_captions.{partition}.json"), "r")
     )
     merged_captions_observable = rx.merge(
         *(build_delayed_caption_obs(caption) for caption in merged_captions)
@@ -279,13 +285,21 @@ def main(
         ready_to_start_playback = multiprocessing.Event()
 
         video_processes = []
+        video_paths = (
+            JUROR_A_VIDEOS[partition - 1],
+            JUROR_B_VIDEOS[partition - 1],
+            JUROR_C_VIDEOS[partition - 1],
+            JURY_FOREMAN_VIDEOS[partition - 1],
+        )
         for (
             video_path,
-            captions_path,
-            caption_visibility,
-            audio_output,
-            is_muted,
-        ) in CONFIGURATION:
+            (
+                captions_path,
+                caption_visibility,
+                audio_output,
+                is_muted,
+            ),
+        ) in zip(video_paths, CONFIGURATION):
             video_processes.append(
                 multiprocessing.Process(
                     target=play_video,
@@ -334,6 +348,12 @@ if __name__ == "__main__":
         type=lambda x: RenderingMethod(int(x)),
     )
     parser.add_argument(
+        "partition",
+        help="Which part of the video to use (1 = first 2.5 minutes, 2 = second 2.5 minutes, etc.",
+        choices=range(1, 5),
+        type=int,
+    )
+    parser.add_argument(
         "--host", type=str, default=get_ip(), help="The host IP to bind to."
     )
     parser.add_argument(
@@ -345,4 +365,4 @@ if __name__ == "__main__":
         help="Whether this server should be trying to connect over serial ports or not.",
     )
     args = parser.parse_args()
-    main(args.host, args.port, args.rendering_method, args.for_testing)
+    main(args.host, args.port, args.rendering_method, args.partition, args.for_testing)

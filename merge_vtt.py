@@ -7,23 +7,24 @@ import json
 
 from webvtt.structures import Caption
 
-juror_a = webvtt.read(os.path.join("captions", "juror-a.webvtt"))
-juror_b = webvtt.read(os.path.join("captions", "juror-b.webvtt"))
-juror_c = webvtt.read(os.path.join("captions", "juror-c.webvtt"))
-jury_foreman = webvtt.read(os.path.join("captions", "jury-foreman.webvtt"))
+for i in range(1, 5):
 
-juror_a_captions = juror_a.captions
-juror_b_captions = juror_b.captions
-juror_c_captions = juror_c.captions
-jury_foreman_captions = jury_foreman.captions
+    juror_a = webvtt.read(os.path.join("captions", f"juror-a.{i}.vtt"))
+    juror_b = webvtt.read(os.path.join("captions", f"juror-b.{i}.vtt"))
+    juror_c = webvtt.read(os.path.join("captions", f"juror-c.{i}.vtt"))
+    jury_foreman = webvtt.read(os.path.join("captions", f"jury-foreman.{i}.vtt"))
+    juror_a_captions = juror_a.captions
+    juror_b_captions = juror_b.captions
+    juror_c_captions = juror_c.captions
+    jury_foreman_captions = jury_foreman.captions
 
+    merged_captions: Iterable[Caption] = sorted(
+        juror_a_captions + juror_b_captions + juror_c_captions + jury_foreman_captions,
+        key=lambda x: x.start_in_seconds,
+    )
 
-merged_captions: Iterable[Caption] = sorted(
-    juror_a_captions + juror_b_captions + juror_c_captions + jury_foreman_captions,
-    key=lambda x: x.start_in_seconds,
-)
-
-merged_webvtt = webvtt.WebVTT("merged_captions.webvtt", captions=merged_captions)
-
-with open(os.path.join("captions", "merged_captions.webvtt"), "w+") as f:
-    merged_webvtt.write(f)
+    merged_webvtt = webvtt.WebVTT(
+        os.path.join("captions", f"merged_captions.{i}.vtt"),
+        captions=merged_captions,
+    )
+    merged_webvtt.save()
