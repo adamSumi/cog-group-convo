@@ -28,13 +28,13 @@ def play_video(
     ready_to_start_playing: multiprocessing.Event,
     caption_url: str,
     should_show_subtitles: multiprocessing.Event,
-    device_id: bytes,
+    # device_id: bytes,
     is_muted: bool = True,
 ):
-    instance: vlc.Instance = vlc.Instance()
+    instance: vlc.Instance = vlc.Instance("--verbose 9")
     media_player: vlc.MediaPlayer = instance.media_player_new()
     media_player.audio_set_mute(True)
-    media_player.audio_output_device_set(None, device_id)
+    # media_player.audio_output_device_set(None, device_id)
     media: vlc.Media = instance.media_new(video_path)
     media_player.set_media(media)
     media_player.play()
@@ -63,7 +63,6 @@ if __name__ == "__main__":
     play_video(
         "videos/juror-a.mp4",
         ready_to_start_playing,
-        RenderingMethod.MONITOR_ONLY,
         "captions/juror-a.webvtt",
         should_show_subtitles,
         False,

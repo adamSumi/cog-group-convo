@@ -29,8 +29,6 @@ def main():
         os.path.join("captions", "jury-foreman.vtt")
     )
     for i in range(1, len(PARTITIONS)):
-        start_timestamp = time.strftime("%H:%M:%S", time.gmtime(PARTITIONS[i - 1]))
-        end_timestamp = time.strftime("%H:%M:%S", time.gmtime(PARTITIONS[i]))
         juror_a_partitioned_captions = [
             shift_caption(caption, PARTITIONS[i - 1])
             for caption in juror_a_webvtt.captions
@@ -75,25 +73,6 @@ def main():
             captions=jury_foreman_partitioned_captions,
         )
         jury_foreman_partition_webvtt.save()
-
-        subprocess.call(
-            f"ffmpeg -err_detect ignore_err -i videos/juror-a.mp4 -ss {start_timestamp} -to {end_timestamp} -c copy videos/juror-a.{i}.mp4",
-            shell=True,
-        )
-
-        subprocess.call(
-            f"ffmpeg -err_detect ignore_err -i videos/juror-b.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/juror-b.{i}.mp4",
-            shell=True,
-        )
-
-        subprocess.call(
-            f"ffmpeg -err_detect ignore_err -i videos/juror-c.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/juror-c.{i}.mp4",
-            shell=True,
-        )
-        subprocess.call(
-            f"ffmpeg -err_detect ignore_err -i videos/jury-foreman.mp4 -ss {PARTITIONS[i-1]} -to {PARTITIONS[i]} -c copy videos/jury-foreman.{i}.mp4",
-            shell=True,
-        )
 
 
 if __name__ == "__main__":

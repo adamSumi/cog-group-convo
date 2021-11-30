@@ -25,60 +25,60 @@ from videos import get_audio_devices, play_video
 
 EXPECTED_CHARACTER = ""
 
-JUROR_A_VIDEOS = [os.path.join("videos", f"juror-a.{i+1}.mp4") for i in range(4)]
-JUROR_B_VIDEOS = [os.path.join("videos", f"juror-b.{i+1}.mp4") for i in range(4)]
-JUROR_C_VIDEOS = [os.path.join("videos", f"juror-c.{i+1}.mp4") for i in range(4)]
+JUROR_A_VIDEOS = [os.path.join("videos", f"juror-a.{i}.mp4") for i in range(1, 5)]
+JUROR_B_VIDEOS = [os.path.join("videos", f"juror-b.{i}.mp4") for i in range(1, 5)]
+JUROR_C_VIDEOS = [os.path.join("videos", f"juror-c.{i}.mp4") for i in range(1, 5)]
 JURY_FOREMAN_VIDEOS = [
-    os.path.join("videos", f"jury-foreman.{i+1}.mp4") for i in range(4)
+    os.path.join("videos", f"jury-foreman.{i}.mp4") for i in range(1, 5)
 ]
 # JUROR_A_VIDEO = os.path.join("videos", "juror-a.mp4")
 # JUROR_B_VIDEO = os.path.join("videos", "juror-b.mp4")
 # JUROR_C_VIDEO = os.path.join("videos", "juror-c.mp4")
 # JURY_FOREMAN_VIDEO = os.path.join("videos", "jury-foreman.mp4")
 
-JUROR_A_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "juror-a.vtt"))}'
-)
-JUROR_B_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "juror-b.vtt"))}'
-)
-JUROR_C_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "juror-c.vtt"))}'
-)
-JURY_FOREMAN_CAPTIONS_PATH = (
-    f'file://{os.path.abspath(os.path.join("captions", "jury-foreman.vtt"))}'
-)
+JUROR_A_CAPTIONS = [
+    f'file://{os.path.abspath(os.path.join("captions", f"juror-a.{i}.vtt"))}'
+    for i in range(1, 5)
+]
+JUROR_B_CAPTIONS = [
+    f'file://{os.path.abspath(os.path.join("captions", f"juror-b.{i}.vtt"))}'
+    for i in range(1, 5)
+]
+JUROR_C_CAPTIONS = [
+    f'file://{os.path.abspath(os.path.join("captions", f"juror-c.{i}.vtt"))}'
+    for i in range(1, 5)
+]
+JURY_FOREMAN_CAPTIONS = [
+    f'file://{os.path.abspath(os.path.join("captions", f"jury-foreman.{i}.vtt"))}'
+    for i in range(1, 5)
+]
 
 caption_visibility = multiprocessing.Event()
 
-JUROR_A_AUDIO_OUTPUT = b"alsa_output.pci-0000_00_1f.3.analog-stereo"
-JUROR_B_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
-JUROR_C_AUDIO_OUTPUT = b"alsa_output.pci-0000_00_1f.3.analog-stereo"
-JURY_FOREMAN_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
+# JUROR_A_AUDIO_OUTPUT = b"alsa_output.pci-0000_00_1f.3.analog-stereo"
+# JUROR_B_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
+# JUROR_C_AUDIO_OUTPUT = b"alsa_output.pci-0000_00_1f.3.analog-stereo"
+# JURY_FOREMAN_AUDIO_OUTPUT = b"bluez_sink.28_11_A5_D9_D9_30.a2dp_sink"
 
 CONFIGURATION = [
     (
-        JUROR_A_CAPTIONS_PATH,
         caption_visibility,
-        JUROR_A_AUDIO_OUTPUT,
+        # JUROR_A_AUDIO_OUTPUT,
         False,
     ),
     (
-        JUROR_B_CAPTIONS_PATH,
         caption_visibility,
-        JUROR_B_AUDIO_OUTPUT,
+        # JUROR_B_AUDIO_OUTPUT,
         False,
     ),
     (
-        JUROR_C_CAPTIONS_PATH,
         caption_visibility,
-        JUROR_C_AUDIO_OUTPUT,
+        # JUROR_C_AUDIO_OUTPUT,
         False,
     ),
     (
-        JURY_FOREMAN_CAPTIONS_PATH,
         caption_visibility,
-        JURY_FOREMAN_AUDIO_OUTPUT,
+        # JURY_FOREMAN_AUDIO_OUTPUT,
         False,
     ),
 ]
@@ -291,15 +291,21 @@ def main(
             JUROR_C_VIDEOS[partition - 1],
             JURY_FOREMAN_VIDEOS[partition - 1],
         )
+        captions_paths = (
+            JUROR_A_CAPTIONS[partition - 1],
+            JUROR_B_CAPTIONS[partition - 1],
+            JUROR_C_CAPTIONS[partition - 1],
+            JURY_FOREMAN_CAPTIONS[partition - 1],
+        )
         for (
             video_path,
+            captions_path,
             (
-                captions_path,
                 caption_visibility,
-                audio_output,
+                # audio_output,
                 is_muted,
             ),
-        ) in zip(video_paths, CONFIGURATION):
+        ) in zip(video_paths, captions_paths, CONFIGURATION):
             video_processes.append(
                 multiprocessing.Process(
                     target=play_video,
@@ -308,7 +314,7 @@ def main(
                         ready_to_start_playback,
                         captions_path,
                         caption_visibility,
-                        audio_output,
+                        # audio_output,
                         is_muted,
                     ),
                 )
