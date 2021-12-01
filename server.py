@@ -344,6 +344,7 @@ def main(
 
 
 if __name__ == "__main__":
+    os.environ["VLC_VERBOSE"] = str("-1")
     parser = argparse.ArgumentParser(
         description="Server for transmitting captions to a device on the same network."
     )
