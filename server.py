@@ -64,17 +64,17 @@ CONFIGURATION = [
     (
         caption_visibility,
         # JUROR_A_AUDIO_OUTPUT,
-        False,
+        True,
     ),
     (
         caption_visibility,
         # JUROR_B_AUDIO_OUTPUT,
-        False,
+        True,
     ),
     (
         caption_visibility,
         # JUROR_C_AUDIO_OUTPUT,
-        False,
+        True,
     ),
     (
         caption_visibility,
