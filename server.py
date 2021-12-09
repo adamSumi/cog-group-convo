@@ -79,7 +79,7 @@ CONFIGURATION = [
     (
         caption_visibility,
         # JURY_FOREMAN_AUDIO_OUTPUT,
-        False,
+        True,
     ),
 ]
 
