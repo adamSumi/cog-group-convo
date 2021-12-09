@@ -31,7 +31,16 @@ def play_video(
     # device_id: bytes,
     is_muted: bool = True,
 ):
-    instance: vlc.Instance = vlc.Instance("--verbose 9")
+    instance: vlc.Instance = vlc.Instance(
+        [
+            "--freetype-background-color",
+            "0",
+            "--freetype-background-opacity",
+            "128",
+            "--verbose",
+            "9",
+        ]
+    )
     media_player: vlc.MediaPlayer = instance.media_player_new()
     media_player.audio_set_mute(True)
     # media_player.audio_output_device_set(None, device_id)
@@ -63,7 +72,7 @@ if __name__ == "__main__":
     play_video(
         "videos/juror-a.mp4",
         ready_to_start_playing,
-        "captions/juror-a.webvtt",
+        f'file://{os.path.abspath(os.path.join("captions", f"merged_captions.vtt"))}',
         should_show_subtitles,
         False,
     )
