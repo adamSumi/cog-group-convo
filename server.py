@@ -1,23 +1,15 @@
 import argparse
-import datetime
 import json
 import logging
 import multiprocessing
 import os
-import random
 import socket
-import time
 from typing import Any, Dict, Literal
-import traceback
 
 import psutil
 import qrcode
-import rx
 import serial
 import serial.tools.list_ports
-from rx import operators as ops
-from rx.core.typing import Observable, Observer, Scheduler
-from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
 import vlc
 from orientation_reading_thread import OrientationReadingThread
 
