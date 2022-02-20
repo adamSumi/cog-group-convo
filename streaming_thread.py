@@ -14,6 +14,10 @@ def calculate_focused_juror(
 
 
 class StreamingThread(threading.Thread):
+    """
+    This thread reads from the provided OrientationReadingThread and CaptionsThread, combines their data, and transmits that data to the socket connection.
+    """
+
     def __init__(
         self,
         connection: socket.socket,
@@ -32,7 +36,7 @@ class StreamingThread(threading.Thread):
     def run(self) -> None:
         while True:
             with self.orientation_reading_thread.lock:
-                orientation = self.orientation_reading_thread.values
+                orientation = self.orientation_reading_thread.current_orientation
                 focused_juror = calculate_focused_juror(orientation)
                 with self.captions_thread.lock:
                     caption = self.captions_thread.current_caption

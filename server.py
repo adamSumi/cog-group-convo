@@ -8,8 +8,6 @@ from typing import Any, Dict, Literal
 
 import psutil
 import qrcode
-import serial
-import serial.tools.list_ports
 import vlc
 from captions_thread import Caption, CaptionsThread
 from orientation_reading_thread import OrientationReadingThread
@@ -81,19 +79,19 @@ CONFIGURATION = [
 logging.basicConfig(level=logging.DEBUG)
 
 
-def create_message(caption: Dict[str, Any], juror_being_looked_at) -> Dict[str, Any]:
-    logging.debug(
-        f"juror={juror_being_looked_at}, caption['speaker_id']={caption['speaker_id']}"
-    )
-    message = {
-        "message_id": caption["message_id"],
-        "chunk_id": caption["chunk_id"],
-        "text": caption["text"],
-        "speaker_id": caption["speaker_id"],
-        "focused_id": juror_being_looked_at,
-    }
-    # logging.debug(f"message={message}")
-    return message
+# def create_message(caption: Dict[str, Any], juror_being_looked_at) -> Dict[str, Any]:
+#     logging.debug(
+#         f"juror={juror_being_looked_at}, caption['speaker_id']={caption['speaker_id']}"
+#     )
+#     message = {
+#         "message_id": caption["message_id"],
+#         "chunk_id": caption["chunk_id"],
+#         "text": caption["text"],
+#         "speaker_id": caption["speaker_id"],
+#         "focused_id": juror_being_looked_at,
+#     }
+#     # logging.debug(f"message={message}")
+#     return message
 
 
 def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> None:
@@ -156,22 +154,6 @@ def render_connection_qrcode(
     img.show()
     logging.debug("Image shown.")
     # return img
-
-
-def select_serial_port() -> serial.Serial:
-    serial_ports = serial.tools.list_ports.comports(include_links=True)
-    print(f"Found {len(serial_ports)} serial ports. Which would you like to choose?")
-    for i, port in enumerate(serial_ports):
-        print(f"[{i}]: {port.device} ({port.description})")
-    selection = input()
-    while (
-        not selection.isnumeric()
-        or int(selection) < 0
-        or int(selection) >= len(serial_ports)
-    ):
-        selection = input(f"Please enter a value from 0-{len(serial_ports)}.")
-    selected_port = serial_ports[int(selection)]
-    return serial.Serial(port=selected_port.device)
 
 
 def close_qrcode():

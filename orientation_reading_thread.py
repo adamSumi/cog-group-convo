@@ -7,11 +7,18 @@ from common import HEADER_SIZE
 
 
 class OrientationReadingThread(threading.Thread):
+    """
+    This thread reads three float values from the connected socket, which should represent the azimuth, pitch, and yaw of the connected device.
+    The current orientation value can be found from self.current_orientation
+
+    REMEMBER TO ACQUIRE/RELEASE THE LOCK DURING USE.
+    """
+
     def __init__(self, connection: socket.socket):
         threading.Thread.__init__(self)
         self.connection = connection
         self.lock = threading.Lock()
-        self.values: Optional[Tuple[float, float, float]] = None
+        self.current_orientation: Optional[Tuple[float, float, float]] = None
 
     def run(self):
         while True:
@@ -22,5 +29,5 @@ class OrientationReadingThread(threading.Thread):
             values = struct.unpack("fff", read_value)
             # If done correctly, "values" here should be (azimuth, pitch, roll).
             self.lock.acquire()
-            self.values = values
+            self.current_orientation = values
             self.lock.release()

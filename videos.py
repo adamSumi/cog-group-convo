@@ -2,9 +2,7 @@ import vlc
 import time
 import multiprocessing
 import os
-from typing import Any, Optional, List
-
-from common import RenderingMethod
+from typing import List
 
 
 def get_audio_devices() -> List:

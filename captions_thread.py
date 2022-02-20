@@ -13,6 +13,13 @@ class Caption(typing.NamedTuple):
 
 
 class CaptionsThread(threading.Thread):
+    """
+    This thread iterates over the captions provided, one-by-one, waiting for the amount of time indicated by the "delay" value before proceeding to the next caption.
+    The `self.current_caption` variable will have the latest caption value.
+
+    REMEMBER TO ACQUIRE/RELEASE THE LOCK BEFORE USE.
+    """
+
     def __init__(self, captions: typing.List[Caption]):
         threading.Thread.__init__(self)
         self.captions = captions

@@ -3,7 +3,7 @@
 import socket
 import json
 from pprint import pprint
-from common import BYTEORDER, HEADER_SIZE, HOST, PORT
+from common import BYTEORDER, HEADER_SIZE
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     host = input("IP address?")

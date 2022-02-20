@@ -1,8 +1,6 @@
 import os
 import webvtt
-from collections import deque
 from typing import Iterable, List, Dict, Tuple
-from pprint import pprint
 import json
 
 from webvtt.structures import Caption

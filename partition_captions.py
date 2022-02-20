@@ -1,7 +1,5 @@
 import os
 import webvtt
-import subprocess
-import datetime
 import time
 
 from webvtt.structures import Caption
