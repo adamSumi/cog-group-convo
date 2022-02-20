@@ -17,4 +17,5 @@ class OrientationReadingThread(threading.Thread):
             # we need (wait until buffer is full before returning) with minimal code writing.
             read_value = self.connection.recv(HEADER_SIZE * 3, socket.MSG_WAITALL)
             values = struct.unpack("fff", read_value)
+            # If done correctly, "values" here should be (azimuth, pitch, roll).
             print(values)
