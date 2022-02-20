@@ -1,6 +1,7 @@
 import socket
 import struct
 import threading
+from typing import Optional, Tuple
 
 from common import HEADER_SIZE
 
@@ -9,6 +10,8 @@ class OrientationReadingThread(threading.Thread):
     def __init__(self, connection: socket.socket):
         threading.Thread.__init__(self)
         self.connection = connection
+        self.lock = threading.Lock()
+        self.values: Optional[Tuple[float, float, float]] = None
 
     def run(self):
         while True:
@@ -18,4 +21,6 @@ class OrientationReadingThread(threading.Thread):
             read_value = self.connection.recv(HEADER_SIZE * 3, socket.MSG_WAITALL)
             values = struct.unpack("fff", read_value)
             # If done correctly, "values" here should be (azimuth, pitch, roll).
-            print(values)
+            self.lock.acquire()
+            self.values = values
+            self.lock.release()

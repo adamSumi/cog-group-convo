@@ -11,9 +11,11 @@ import qrcode
 import serial
 import serial.tools.list_ports
 import vlc
+from captions_thread import Caption, CaptionsThread
 from orientation_reading_thread import OrientationReadingThread
 
 from common import BYTEORDER, HEADER_SIZE, PORT, JurorId, RenderingMethod
+from streaming_thread import StreamingThread
 from videos import get_audio_devices, play_video
 
 EXPECTED_CHARACTER = ""
@@ -197,9 +199,23 @@ def main(
     begins transmitting messages to the connected socket. The content of the messages depends
     on the reading taken from the serial monitor (see create_message)
     """
-    merged_captions = json.load(
+    merged_captions_json = json.load(
         open(os.path.join("captions", f"merged_captions.{partition}.json"), "r")
     )
+    merged_captions = [
+        Caption(
+            text=caption_data["text"],
+            message_id=caption_data["message_id"],
+            chunk_id=caption_data["chunk_id"],
+            delay=(
+                merged_captions_json[i]["delay"] - merged_captions_json[i - 1]["delay"]
+                if i > 0
+                else merged_captions_json[i]["delay"]
+            ),
+            speaker_id=caption_data["speaker_id"],
+        )
+        for i, caption_data in enumerate(merged_captions_json)
+    ]
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
@@ -268,7 +284,20 @@ def main(
         #     video_process.join()
         orientation_reading_thread = OrientationReadingThread(connection=conn)
         orientation_reading_thread.start()
+
+        captions_thread = CaptionsThread(captions=merged_captions)
+        captions_thread.start()
+
+        streaming_thread = StreamingThread(
+            connection=conn,
+            captions_thread=captions_thread,
+            orientation_reading_thread=orientation_reading_thread,
+        )
+        streaming_thread.start()
+
         orientation_reading_thread.join()
+        captions_thread.join()
+        streaming_thread.join()
 
 
 if __name__ == "__main__":
