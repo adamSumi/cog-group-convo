@@ -12,7 +12,9 @@ for partition in range(1, 5):
     juror_a = webvtt.read(os.path.join("captions", f"juror-a.{partition}.vtt"))
     juror_b = webvtt.read(os.path.join("captions", f"juror-b.{partition}.vtt"))
     juror_c = webvtt.read(os.path.join("captions", f"juror-c.{partition}.vtt"))
-    jury_foreman = webvtt.read(os.path.join("captions", f"jury-foreman.{partition}.vtt"))
+    jury_foreman = webvtt.read(
+        os.path.join("captions", f"jury-foreman.{partition}.vtt")
+    )
 
     juror_a_captions = [("juror-a", caption) for caption in juror_a.captions]
     juror_b_captions = [("juror-b", caption) for caption in juror_b.captions]

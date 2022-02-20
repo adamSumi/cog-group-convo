@@ -7,7 +7,7 @@ import os
 import random
 import socket
 import time
-from typing import Any, Callable, Dict, Literal
+from typing import Any, Dict, Literal
 import traceback
 
 import psutil
@@ -19,6 +19,7 @@ from rx import operators as ops
 from rx.core.typing import Observable, Observer, Scheduler
 from rx.scheduler.threadpoolscheduler import ThreadPoolScheduler
 import vlc
+from orientation_reading_thread import OrientationReadingThread
 
 from common import BYTEORDER, HEADER_SIZE, PORT, JurorId, RenderingMethod
 from videos import get_audio_devices, play_video
@@ -113,40 +114,6 @@ def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> N
     connection.sendall(msg_with_header)
 
 
-def mock_serial_monitor(observer: Observer, scheduler: Scheduler) -> None:
-    while True:
-        time.sleep((random.random() * 4) + 0.5)
-        observer.on_next(
-            random.choice(["juror-a", "juror-b", "juror-c", "jury-foreman", None])
-            # "juror-a"
-        )
-
-
-def serial_monitor(
-    selected_serial: serial.Serial,
-) -> Callable[[Observer, Scheduler], None]:
-    """
-    Reads from the serial monitor, and emits the read value to the provided observer.
-    """
-
-    def _serial_monitor(observer: Observer, scheduler: Scheduler):
-        with selected_serial as ser:
-            while True:
-                juror_val = ser.readline().decode("ascii").strip()
-                if juror_val == "0":
-                    observer.on_next("juror-a")
-                if juror_val == "1":
-                    observer.on_next("juror-b")
-                if juror_val == "2":
-                    observer.on_next("juror-c")
-                if juror_val == "3":
-                    observer.on_next("jury-foreman")
-                if juror_val == "9":
-                    observer.on_next(None)
-
-    return _serial_monitor
-
-
 def update_caption_visibility(
     juror_captions_visible: multiprocessing.Event,
     juror_id: JurorId,
@@ -162,16 +129,6 @@ def update_caption_visibility(
         return message
 
     return action
-
-
-def build_delayed_caption_obs(caption: Dict[str, Any]) -> Observable:
-    """
-    Takes a caption, and constructs an observable sequence comprised of one caption,
-    delayed by a given amount of time.
-    """
-    return rx.just(caption).pipe(
-        ops.delay(datetime.timedelta(milliseconds=caption["delay"]))
-    )
 
 
 def get_ip() -> str:
@@ -248,24 +205,9 @@ def main(
     begins transmitting messages to the connected socket. The content of the messages depends
     on the reading taken from the serial monitor (see create_message)
     """
-    scheduler = ThreadPoolScheduler(multiprocessing.cpu_count())
-    # return
-
-    if for_testing:
-        configured_serial_monitor = mock_serial_monitor
-    else:
-        selected_serial_port = select_serial_port()
-        configured_serial_monitor = serial_monitor(selected_serial_port)
-
     merged_captions = json.load(
         open(os.path.join("captions", f"merged_captions.{partition}.json"), "r")
     )
-    merged_captions_observable = rx.merge(
-        *(build_delayed_caption_obs(caption) for caption in merged_captions)
-    )
-    serial_monitor_observable: Observable[JurorId] = rx.create(
-        configured_serial_monitor
-    ).pipe(ops.subscribe_on(scheduler), ops.distinct_until_changed())
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
@@ -277,70 +219,64 @@ def main(
 
         close_qrcode()
 
-        messages_observable = rx.combine_latest(
-            merged_captions_observable,
-            serial_monitor_observable,
-        ).pipe(ops.map(lambda x: create_message(x[0], x[1])))
+        # ready_to_start_playback = multiprocessing.Event()
 
-        ready_to_start_playback = multiprocessing.Event()
+        # video_processes = []
+        # video_paths = (
+        #     JUROR_A_VIDEOS[partition - 1],
+        #     JUROR_B_VIDEOS[partition - 1],
+        #     JUROR_C_VIDEOS[partition - 1],
+        #     JURY_FOREMAN_VIDEOS[partition - 1],
+        # )
+        # captions_paths = (
+        #     JUROR_A_CAPTIONS[partition - 1],
+        #     JUROR_B_CAPTIONS[partition - 1],
+        #     JUROR_C_CAPTIONS[partition - 1],
+        #     JURY_FOREMAN_CAPTIONS[partition - 1],
+        # )
+        # for (
+        #     video_path,
+        #     captions_path,
+        #     (
+        #         caption_visibility,
+        #         # audio_output,
+        #         is_muted,
+        #     ),
+        # ) in zip(video_paths, captions_paths, CONFIGURATION):
+        #     video_processes.append(
+        #         multiprocessing.Process(
+        #             target=play_video,
+        #             args=(
+        #                 video_path,
+        #                 ready_to_start_playback,
+        #                 captions_path,
+        #                 caption_visibility,
+        #                 # audio_output,
+        #                 is_muted,
+        #             ),
+        #         )
+        #     )
+        # for video_process in video_processes:
+        #     video_process.start()
+        # ready = input("Press ENTER to begin the experiment.")
+        # while ready != EXPECTED_CHARACTER:
+        #     ready = input(
+        #         "Invalid character received. Press ENTER to begin the experiment."
+        #     )
+        # if rendering_method in (
+        #     RenderingMethod.MONITOR_ONLY,
+        #     RenderingMethod.MONITOR_AND_GLOBAL,
+        #     RenderingMethod.MONITOR_AND_GLOBAL_WITH_DIRECTION_INDICATORS,
+        # ):
+        #     caption_visibility.set()
 
-        video_processes = []
-        video_paths = (
-            JUROR_A_VIDEOS[partition - 1],
-            JUROR_B_VIDEOS[partition - 1],
-            JUROR_C_VIDEOS[partition - 1],
-            JURY_FOREMAN_VIDEOS[partition - 1],
-        )
-        captions_paths = (
-            JUROR_A_CAPTIONS[partition - 1],
-            JUROR_B_CAPTIONS[partition - 1],
-            JUROR_C_CAPTIONS[partition - 1],
-            JURY_FOREMAN_CAPTIONS[partition - 1],
-        )
-        for (
-            video_path,
-            captions_path,
-            (
-                caption_visibility,
-                # audio_output,
-                is_muted,
-            ),
-        ) in zip(video_paths, captions_paths, CONFIGURATION):
-            video_processes.append(
-                multiprocessing.Process(
-                    target=play_video,
-                    args=(
-                        video_path,
-                        ready_to_start_playback,
-                        captions_path,
-                        caption_visibility,
-                        # audio_output,
-                        is_muted,
-                    ),
-                )
-            )
-        for video_process in video_processes:
-            video_process.start()
-        ready = input("Press ENTER to begin the experiment.")
-        while ready != EXPECTED_CHARACTER:
-            ready = input(
-                "Invalid character received. Press ENTER to begin the experiment."
-            )
-        if rendering_method in (
-            RenderingMethod.MONITOR_ONLY,
-            RenderingMethod.MONITOR_AND_GLOBAL,
-            RenderingMethod.MONITOR_AND_GLOBAL_WITH_DIRECTION_INDICATORS,
-        ):
-            caption_visibility.set()
+        # ready_to_start_playback.set()
 
-        messages_observable.subscribe(
-            lambda message: socket_transmission(message, conn),
-            on_error=lambda e: traceback.print_tb(e.__traceback__),
-        )
-        ready_to_start_playback.set()
-
-        for video_process in video_processes:
-            video_process.join()
+        # for video_process in video_processes:
+        #     video_process.join()
+        orientation_reading_thread = OrientationReadingThread(connection=conn)
+        orientation_reading_thread.start()
+        orientation_reading_thread.join()
 
 
 if __name__ == "__main__":
