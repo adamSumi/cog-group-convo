@@ -29,6 +29,5 @@ class CaptionsThread(threading.Thread):
     def run(self) -> None:
         for caption in self.captions:
             time.sleep(caption.delay / 1000)
-            self.lock.acquire()
-            self.current_caption = caption
-            self.lock.release()
+            with self.lock:
+                self.current_caption = caption

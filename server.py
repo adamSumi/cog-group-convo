@@ -13,6 +13,7 @@ from captions_thread import Caption, CaptionsThread
 from orientation_reading_thread import OrientationReadingThread
 
 from common import BYTEORDER, HEADER_SIZE, PORT, JurorId, RenderingMethod
+from serial_thread import MockSerialThread, SerialThread
 from streaming_thread import StreamingThread
 from videos import get_audio_devices, play_video
 
@@ -264,6 +265,8 @@ def main(
 
         # for video_process in video_processes:
         #     video_process.join()
+        # serial_thread = SerialThread() if not for_testing else MockSerialThread()
+        # serial_thread.start()
         orientation_reading_thread = OrientationReadingThread(connection=conn)
         orientation_reading_thread.start()
 
