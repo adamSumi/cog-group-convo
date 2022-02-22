@@ -247,8 +247,8 @@ def main(
                     ),
                 )
             )
-        # for video_process in video_processes:
-        #     video_process.start()
+        for video_process in video_processes:
+            video_process.start()
         ready = input("Press ENTER to begin the experiment.")
         while ready != EXPECTED_CHARACTER:
             ready = input(
@@ -263,8 +263,8 @@ def main(
 
         ready_to_start_playback.set()
 
-        # for video_process in video_processes:
-        #     video_process.join()
+        for video_process in video_processes:
+            video_process.join()
         serial_thread = SerialThread() if not for_testing else MockSerialThread()
         serial_thread.start()
         orientation_reading_thread = OrientationReadingThread(connection=conn)
