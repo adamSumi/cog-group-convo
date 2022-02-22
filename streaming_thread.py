@@ -34,10 +34,6 @@ class StreamingThread(threading.Thread):
             raise Exception(
                 "Either serial_thread or orientation_reading_thread must be set."
             )
-        if serial_thread and orientation_reading_thread:
-            raise Exception(
-                "Only one of serial_thread or orientation_reading_thread may be set at a time."
-            )
         self.connection = connection
         self.orientation_reading_thread = orientation_reading_thread
         self.serial_thread = serial_thread
@@ -50,8 +46,8 @@ class StreamingThread(threading.Thread):
     def focused_juror_from_orientation(self):
         with self.orientation_reading_thread.lock:
             orientation = self.orientation_reading_thread.current_orientation
-            return calculate_focused_juror(orientation)
-
+            # return calculate_focused_juror(orientation)
+            print(orientation)
     def focused_juror_from_serial(self):
         with self.serial_thread.lock:
             return self.serial_thread.current_focused_juror
@@ -59,9 +55,10 @@ class StreamingThread(threading.Thread):
     def run(self) -> None:
         while True:
             focused_juror = (
-                self.focused_juror_from_orientation()
-                if self.orientation_reading_thread
-                else self.focused_juror_from_serial()
+                # self.focused_juror_from_orientation()
+                # if self.orientation_reading_thread
+                # else self.focused_juror_from_serial()
+                self.focused_juror_from_serial()
             )
             with self.captions_thread.lock:
                 caption = self.captions_thread.current_caption
@@ -79,7 +76,7 @@ class StreamingThread(threading.Thread):
                     "speaker_id": caption.speaker_id,
                     "focused_id": focused_juror,
                 }
-
+                self.focused_juror_from_orientation()
                 msg = json.dumps(message).encode("utf-8")
                 msg_len = len(msg)
                 msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)

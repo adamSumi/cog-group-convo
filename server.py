@@ -277,7 +277,7 @@ def main(
             connection=conn,
             captions_thread=captions_thread,
             serial_thread = serial_thread,
-            # orientation_reading_thread=orientation_reading_thread,
+            orientation_reading_thread=orientation_reading_thread,
         )
         streaming_thread.start()
 

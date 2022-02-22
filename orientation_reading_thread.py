@@ -1,9 +1,10 @@
+import json
 import socket
 import struct
 import threading
 from typing import Optional, Tuple
 
-from common import HEADER_SIZE
+from common import BYTEORDER, HEADER_SIZE
 
 
 class OrientationReadingThread(threading.Thread):
@@ -25,8 +26,11 @@ class OrientationReadingThread(threading.Thread):
             # MSG_WAITALL only works on Unix-based systems (see https://linux.die.net/man/2/recv).
             # Probably should use a cross-platform solution for Windows devs, but this does what
             # we need (wait until buffer is full before returning) with minimal code writing.
-            read_value = self.connection.recv(HEADER_SIZE * 3, socket.MSG_WAITALL)
-            values = struct.unpack("fff", read_value)
-            # If done correctly, "values" here should be (azimuth, pitch, roll).
+            msg_size = int.from_bytes(self.connection.recv(HEADER_SIZE, socket.MSG_WAITALL), BYTEORDER)
+            orientation_msg = self.connection.recv(msg_size, socket.MSG_WAITALL)
+            orientation_message = json.loads(orientation_msg.decode('utf-8'))
             with self.lock:
-                self.current_orientation = values
+                azimuth = orientation_message["azimuth"]
+                pitch = orientation_message["pitch"]
+                roll = orientation_message["roll"]
+                self.current_orientation = (azimuth, pitch, roll)
