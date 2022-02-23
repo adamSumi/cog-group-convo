@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import socket
 import json
+import socket
 from pprint import pprint
+
 from common import BYTEORDER, HEADER_SIZE
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

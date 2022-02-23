@@ -3,10 +3,10 @@ import socket
 import threading
 import typing
 
-from orientation_reading_thread import OrientationReadingThread
 from captions_thread import Caption, CaptionsThread
+from common import BYTEORDER, HEADER_SIZE
+from orientation_reading_thread import OrientationReadingThread
 from serial_thread import MockSerialThread, SerialThread
-from common import HEADER_SIZE, BYTEORDER
 
 
 def calculate_focused_juror(
@@ -48,6 +48,7 @@ class StreamingThread(threading.Thread):
             orientation = self.orientation_reading_thread.current_orientation
             # return calculate_focused_juror(orientation)
             print(orientation)
+
     def focused_juror_from_serial(self):
         with self.serial_thread.lock:
             return self.serial_thread.current_focused_juror

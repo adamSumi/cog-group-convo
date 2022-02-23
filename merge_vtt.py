@@ -1,8 +1,7 @@
 import os
-import webvtt
 from typing import Iterable
-from pprint import pprint
 
+import webvtt
 from webvtt.structures import Caption
 
 for i in range(1, 5):

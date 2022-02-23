@@ -1,9 +1,10 @@
-import os
-import webvtt
-from typing import Iterable, List, Dict, Tuple
 import json
+import os
+from typing import Dict, Iterable, List, Tuple
 
+import webvtt
 from webvtt.structures import Caption
+
 from common import JurorId
 
 for partition in range(1, 5):

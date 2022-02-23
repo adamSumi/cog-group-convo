@@ -2,6 +2,7 @@ import random
 import threading
 import time
 import typing
+
 import serial
 
 
@@ -42,9 +43,10 @@ class SerialThread(threading.Thread):
 class MockSerialThread(threading.Thread):
     """
     This thread can be used to simulate serial monitor behavior when a developer does not have access to the hardware.
-    
+
     REMEMBER TO ACQUIRE/RELEASE THE LOCK BEFORE USE.
     """
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.lock = threading.Lock()

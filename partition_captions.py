@@ -1,7 +1,7 @@
 import os
-import webvtt
 import time
 
+import webvtt
 from webvtt.structures import Caption
 
 PARTITIONS = (0, 150, 300, 450, 600)

@@ -1,8 +1,9 @@
-import vlc
-import time
 import multiprocessing
 import os
+import time
 from typing import List
+
+import vlc
 
 
 def get_audio_devices() -> List:

@@ -8,14 +8,13 @@ from typing import Any, Dict, Literal
 
 import psutil
 import qrcode
-import vlc
-from captions_thread import Caption, CaptionsThread
-from orientation_reading_thread import OrientationReadingThread
 
+from captions_thread import Caption, CaptionsThread
 from common import BYTEORDER, HEADER_SIZE, PORT, JurorId, RenderingMethod
+from orientation_reading_thread import OrientationReadingThread
 from serial_thread import MockSerialThread, SerialThread
 from streaming_thread import StreamingThread
-from videos import get_audio_devices, play_video
+from videos import play_video
 
 EXPECTED_CHARACTER = ""
 
@@ -25,11 +24,6 @@ JUROR_C_VIDEOS = [os.path.join("videos", f"juror-c.{i}.mp4") for i in range(1, 5
 JURY_FOREMAN_VIDEOS = [
     os.path.join("videos", f"jury-foreman.{i}.mp4") for i in range(1, 5)
 ]
-# JUROR_A_VIDEO = os.path.join("videos", "juror-a.mp4")
-# JUROR_B_VIDEO = os.path.join("videos", "juror-b.mp4")
-# JUROR_C_VIDEO = os.path.join("videos", "juror-c.mp4")
-# JURY_FOREMAN_VIDEO = os.path.join("videos", "jury-foreman.mp4")
-
 JUROR_A_CAPTIONS = [
     f'file://{os.path.abspath(os.path.join("captions", f"juror-a.{i}.vtt"))}'
     for i in range(1, 5)
@@ -78,21 +72,6 @@ CONFIGURATION = [
 ]
 
 logging.basicConfig(level=logging.DEBUG)
-
-
-# def create_message(caption: Dict[str, Any], juror_being_looked_at) -> Dict[str, Any]:
-#     logging.debug(
-#         f"juror={juror_being_looked_at}, caption['speaker_id']={caption['speaker_id']}"
-#     )
-#     message = {
-#         "message_id": caption["message_id"],
-#         "chunk_id": caption["chunk_id"],
-#         "text": caption["text"],
-#         "speaker_id": caption["speaker_id"],
-#         "focused_id": juror_being_looked_at,
-#     }
-#     # logging.debug(f"message={message}")
-#     return message
 
 
 def socket_transmission(message: Dict[str, Any], connection: socket.socket) -> None:
@@ -276,7 +255,7 @@ def main(
         streaming_thread = StreamingThread(
             connection=conn,
             captions_thread=captions_thread,
-            serial_thread = serial_thread,
+            serial_thread=serial_thread,
             orientation_reading_thread=orientation_reading_thread,
         )
         streaming_thread.start()
