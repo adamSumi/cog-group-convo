@@ -56,7 +56,6 @@ class StreamingThread(threading.Thread):
             return self.serial_thread.current_focused_juror
 
     def run(self) -> None:
-        builder = flatbuffers.Builder()
         while True:
             focused_juror = (
                 # self.focused_juror_from_orientation()
@@ -72,8 +71,8 @@ class StreamingThread(threading.Thread):
                 ):
                     continue
                 self.last_caption = caption
-                print("caption =", caption)
                 self.last_focused_juror = focused_juror
+                builder = flatbuffers.Builder()
                 text = builder.CreateString(caption.text)
                 speaker_id = builder.CreateString(caption.speaker_id)
                 if focused_juror:
@@ -85,11 +84,11 @@ class StreamingThread(threading.Thread):
                 CaptionMessage.AddSpeakerId(builder, speaker_id)
                 if focused_juror:
                     CaptionMessage.AddFocusedId(builder, focused_id)
+                print(caption, focused_juror)
                 caption_message = CaptionMessage.End(builder)
                 builder.Finish(caption_message)
                 buf = builder.Output()
-
                 # self.focused_juror_from_orientation()
-                buf = builder.Output()
+                print("Buf size =", len(buf))
                 self.connection.sendall(len(buf).to_bytes(HEADER_SIZE, BYTEORDER))
                 self.connection.sendall(buf)
