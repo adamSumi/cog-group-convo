@@ -1,0 +1,3 @@
+[submodule "cog_flatbuffer_definitions"]
+	path = cog_flatbuffer_definitions
+	url = https://github.com/SaltyQuetzals/cog-flatbuffer-definitions
