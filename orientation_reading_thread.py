@@ -2,6 +2,8 @@ import json
 import socket
 import threading
 from typing import Optional, Tuple
+import flatbuffers
+from cog_flatbuffer_definitions.cog import OrientationMessage
 
 from common import BYTEORDER, HEADER_SIZE
 
@@ -18,7 +20,7 @@ class OrientationReadingThread(threading.Thread):
         threading.Thread.__init__(self)
         self.connection = connection
         self.lock = threading.Lock()
-        self.current_orientation: Optional[Tuple[float, float, float]] = None
+        self.current_orientation: Optional[OrientationMessage.OrientationMessage] = None
 
     def run(self):
         while True:
@@ -28,11 +30,6 @@ class OrientationReadingThread(threading.Thread):
             msg_size = int.from_bytes(
                 self.connection.recv(HEADER_SIZE, socket.MSG_WAITALL), BYTEORDER
             )
-            orientation_msg = self.connection.recv(msg_size, socket.MSG_WAITALL)
-            orientation_message = json.loads(orientation_msg.decode("utf-8"))
+            orientation_msg = bytearray(self.connection.recv(msg_size, socket.MSG_WAITALL))
             with self.lock:
-                azimuth = orientation_message["azimuth"]
-                pitch = orientation_message["pitch"]
-                roll = orientation_message["roll"]
-                self.current_orientation = (azimuth, pitch, roll)
-                print(self.current_orientation)
+                self.current_orientation = OrientationMessage.OrientationMessage.GetRootAs(orientation_msg, 0)

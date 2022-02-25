@@ -5,8 +5,10 @@ import typing
 
 from captions_thread import Caption, CaptionsThread
 from common import BYTEORDER, HEADER_SIZE
+import flatbuffers
 from orientation_reading_thread import OrientationReadingThread
 from serial_thread import MockSerialThread, SerialThread
+from cog_flatbuffer_definitions.cog import CaptionMessage
 
 
 def calculate_focused_juror(
@@ -54,6 +56,7 @@ class StreamingThread(threading.Thread):
             return self.serial_thread.current_focused_juror
 
     def run(self) -> None:
+        builder = flatbuffers.Builder()
         while True:
             focused_juror = (
                 # self.focused_juror_from_orientation()
@@ -69,17 +72,24 @@ class StreamingThread(threading.Thread):
                 ):
                     continue
                 self.last_caption = caption
+                print("caption =", caption)
                 self.last_focused_juror = focused_juror
-                message = {
-                    "message_id": caption.message_id,
-                    "chunk_id": caption.chunk_id,
-                    "text": caption.text,
-                    "speaker_id": caption.speaker_id,
-                    "focused_id": focused_juror,
-                }
-                self.focused_juror_from_orientation()
-                msg = json.dumps(message).encode("utf-8")
-                msg_len = len(msg)
-                msg_len_bytes = msg_len.to_bytes(HEADER_SIZE, BYTEORDER)
-                msg_with_header = msg_len_bytes + msg
-                self.connection.sendall(msg_with_header)
+                text = builder.CreateString(caption.text)
+                speaker_id = builder.CreateString(caption.speaker_id)
+                if focused_juror:
+                    focused_id = builder.CreateString(focused_juror)
+                CaptionMessage.CaptionMessageStart(builder)
+                CaptionMessage.AddMessageId(builder, caption.message_id)
+                CaptionMessage.AddChunkId(builder, caption.chunk_id)
+                CaptionMessage.AddText(builder, text)
+                CaptionMessage.AddSpeakerId(builder, speaker_id)
+                if focused_juror:
+                    CaptionMessage.AddFocusedId(builder, focused_id)
+                caption_message = CaptionMessage.End(builder)
+                builder.Finish(caption_message)
+                buf = builder.Output()
+
+                # self.focused_juror_from_orientation()
+                buf = builder.Output()
+                self.connection.sendall(len(buf).to_bytes(HEADER_SIZE, BYTEORDER))
+                self.connection.sendall(buf)

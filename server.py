@@ -187,64 +187,64 @@ def main(
         conn, addr = sock.accept()
         logging.info(f"Socket connection received from: {addr[0]}:{addr[1]}")
 
-        close_qrcode()
+        # close_qrcode()
 
-        ready_to_start_playback = multiprocessing.Event()
+        # ready_to_start_playback = multiprocessing.Event()
 
-        video_processes = []
-        video_paths = (
-            JUROR_A_VIDEOS[partition - 1],
-            JUROR_B_VIDEOS[partition - 1],
-            JUROR_C_VIDEOS[partition - 1],
-            JURY_FOREMAN_VIDEOS[partition - 1],
-        )
-        captions_paths = (
-            JUROR_A_CAPTIONS[partition - 1],
-            JUROR_B_CAPTIONS[partition - 1],
-            JUROR_C_CAPTIONS[partition - 1],
-            JURY_FOREMAN_CAPTIONS[partition - 1],
-        )
-        for (
-            video_path,
-            captions_path,
-            (
-                caption_visibility,
-                # audio_output,
-                is_muted,
-            ),
-        ) in zip(video_paths, captions_paths, CONFIGURATION):
-            video_processes.append(
-                multiprocessing.Process(
-                    target=play_video,
-                    args=(
-                        video_path,
-                        ready_to_start_playback,
-                        captions_path,
-                        caption_visibility,
-                        # audio_output,
-                        is_muted,
-                    ),
-                )
-            )
-        for video_process in video_processes:
-            video_process.start()
-        ready = input("Press ENTER to begin the experiment.")
-        while ready != EXPECTED_CHARACTER:
-            ready = input(
-                "Invalid character received. Press ENTER to begin the experiment."
-            )
-        if rendering_method in (
-            RenderingMethod.MONITOR_ONLY,
-            RenderingMethod.MONITOR_AND_GLOBAL,
-            RenderingMethod.MONITOR_AND_GLOBAL_WITH_DIRECTION_INDICATORS,
-        ):
-            caption_visibility.set()
+        # video_processes = []
+        # video_paths = (
+        #     JUROR_A_VIDEOS[partition - 1],
+        #     JUROR_B_VIDEOS[partition - 1],
+        #     JUROR_C_VIDEOS[partition - 1],
+        #     JURY_FOREMAN_VIDEOS[partition - 1],
+        # )
+        # captions_paths = (
+        #     JUROR_A_CAPTIONS[partition - 1],
+        #     JUROR_B_CAPTIONS[partition - 1],
+        #     JUROR_C_CAPTIONS[partition - 1],
+        #     JURY_FOREMAN_CAPTIONS[partition - 1],
+        # )
+        # for (
+        #     video_path,
+        #     captions_path,
+        #     (
+        #         caption_visibility,
+        #         # audio_output,
+        #         is_muted,
+        #     ),
+        # ) in zip(video_paths, captions_paths, CONFIGURATION):
+        #     video_processes.append(
+        #         multiprocessing.Process(
+        #             target=play_video,
+        #             args=(
+        #                 video_path,
+        #                 ready_to_start_playback,
+        #                 captions_path,
+        #                 caption_visibility,
+        #                 # audio_output,
+        #                 is_muted,
+        #             ),
+        #         )
+        #     )
+        # for video_process in video_processes:
+        #     video_process.start()
+        # ready = input("Press ENTER to begin the experiment.")
+        # while ready != EXPECTED_CHARACTER:
+        #     ready = input(
+        #         "Invalid character received. Press ENTER to begin the experiment."
+        #     )
+        # if rendering_method in (
+        #     RenderingMethod.MONITOR_ONLY,
+        #     RenderingMethod.MONITOR_AND_GLOBAL,
+        #     RenderingMethod.MONITOR_AND_GLOBAL_WITH_DIRECTION_INDICATORS,
+        # ):
+        #     caption_visibility.set()
 
-        ready_to_start_playback.set()
+        # ready_to_start_playback.set()
 
-        for video_process in video_processes:
-            video_process.join()
-        serial_thread = SerialThread() if not for_testing else MockSerialThread()
+        # for video_process in video_processes:
+        #     video_process.join()
+        serial_thread = MockSerialThread()
         serial_thread.start()
         orientation_reading_thread = OrientationReadingThread(connection=conn)
         orientation_reading_thread.start()
