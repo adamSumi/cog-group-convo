@@ -4,11 +4,12 @@ import threading
 import typing
 
 from captions_thread import Caption, CaptionsThread
+from cog_flatbuffer_definitions import cog
 from common import BYTEORDER, HEADER_SIZE
 import flatbuffers
 from orientation_reading_thread import OrientationReadingThread
 from serial_thread import MockSerialThread, SerialThread
-from cog_flatbuffer_definitions.cog import CaptionMessage
+from cog_flatbuffer_definitions.cog import CaptionMessage, Juror
 
 
 def calculate_focused_juror(
@@ -56,6 +57,13 @@ class StreamingThread(threading.Thread):
             return self.serial_thread.current_focused_juror
 
     def run(self) -> None:
+        juror_to_byte = {
+            "juror-a": Juror.Juror.JurorA,
+            "juror-b": Juror.Juror.JurorB,
+            "juror-c": Juror.Juror.JurorC,
+            "jury-foreman": Juror.Juror.JuryForeman,
+            None: None,
+        }
         while True:
             focused_juror = (
                 # self.focused_juror_from_orientation()
@@ -74,9 +82,9 @@ class StreamingThread(threading.Thread):
                 self.last_focused_juror = focused_juror
                 builder = flatbuffers.Builder()
                 text = builder.CreateString(caption.text)
-                speaker_id = builder.CreateString(caption.speaker_id)
+                speaker_id = juror_to_byte[caption.speaker_id]
                 if focused_juror:
-                    focused_id = builder.CreateString(focused_juror)
+                    focused_id = juror_to_byte[focused_juror]
                 CaptionMessage.CaptionMessageStart(builder)
                 CaptionMessage.AddMessageId(builder, caption.message_id)
                 CaptionMessage.AddChunkId(builder, caption.chunk_id)
@@ -90,5 +98,4 @@ class StreamingThread(threading.Thread):
                 buf = builder.Output()
                 # self.focused_juror_from_orientation()
                 print("Buf size =", len(buf))
-                self.connection.sendall(len(buf).to_bytes(HEADER_SIZE, BYTEORDER))
                 self.connection.sendall(buf)
