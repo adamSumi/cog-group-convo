@@ -27,6 +27,8 @@ class CaptionsThread(threading.Thread):
 
     def run(self) -> None:
         for caption in self.captions:
+            if caption.delay / 1000 < 0:
+                print("Caption delay was negative:", caption)
             time.sleep(caption.delay / 1000)
             with self.lock:
                 self.current_caption = caption
