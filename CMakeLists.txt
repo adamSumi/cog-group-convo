@@ -6,12 +6,14 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
 set(SOURCES
         src/main.cpp
-)
+        src/Shader.h)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME}
-    PRIVATE
-    ${SRC_DIR}
-)
+        PRIVATE
+        ${SRC_DIR}
+        )
+file(GLOB SHADERS "src/*.shader")
+file(COPY ${SHADERS} DESTINATION ${CMAKE_BINARY_DIR})
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
