@@ -6,29 +6,20 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
 set(SOURCES
         src/main.cpp
-        src/Shader.h)
+        )
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME}
         PRIVATE
         ${SRC_DIR}
         )
-file(GLOB SHADERS "src/*.shader")
-file(COPY ${SHADERS} DESTINATION ${CMAKE_BINARY_DIR})
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
+include_directories(cog-flatbuffer-definitions)
 
-set(GLFW_DIR ${LIB_DIR}/glfw)
-set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs")
-set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "Build the GLFW test programs")
-set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation")
-set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
-add_subdirectory(${GLFW_DIR})
-target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${GLFW_DIR}/include)
-target_compile_definitions(${PROJECT_NAME} PRIVATE GLFW_INCLUDE_NONE)
+# Add FlatBuffers directly to our build. This defines the `flatbuffers` target.
+set(FLATBUFFERS_SRC_DIR ${LIB_DIR}/flatbuffers)
+add_subdirectory(${FLATBUFFERS_SRC_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-build
+        EXCLUDE_FROM_ALL)
 
-set(GLAD_DIR ${LIB_DIR}/glad)
-add_library(glad ${GLAD_DIR}/src/glad.c)
-target_include_directories(glad PRIVATE ${GLAD_DIR}/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${GLAD_DIR}/include)
-target_link_libraries(${PROJECT_NAME} glad ${CMAKE_DL_LIBS})
+# Now simply link against flatbuffers as needed to your already declared target.
+# The flatbuffers target carry header search path automatically if CMake > 2.8.11.
+target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers)

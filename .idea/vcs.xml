@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cog-flatbuffer-definitions" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libs/flatbuffers" vcs="Git" />
   </component>
 </project>
