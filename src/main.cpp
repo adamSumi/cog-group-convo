@@ -1,11 +1,13 @@
-// C program to display hostname
-// and IP address
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string>
+#include <iostream>
+
+#define PORT 65432
 
 // Returns hostname for the local computer
 void checkHostName(int hostname) {
@@ -53,8 +55,12 @@ int main() {
             host_entry->h_addr_list[0]));
 
     printf("Hostname: %s\n", hostbuffer);
-    printf("Host IP: %s", IPbuffer);
+    printf("Host IP: %s\n", IPbuffer);
 
-    system("qrencode -t ANSI 192.168.1.1:65432");
+    std::string ip_port = std::string(IPbuffer) + std::to_string(PORT);
+    std::string presentation_method = "1";
+    std::string command = std::string("qrencode -t ANSI \"") + ip_port + " " + presentation_method + "\"";
+    std::cout << "Command is: " << command << std::endl;
+    system(command.c_str());
     return 0;
 }
