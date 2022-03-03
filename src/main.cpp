@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <cmath>
 #include "Shader.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -43,7 +44,7 @@ int main() {
     }
 
     Shader shader("vertex.shader", "fragment.shader");
-
+    float i = 0;
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
@@ -71,7 +72,7 @@ int main() {
     glBindVertexArray(VAO);
     // 2. copy our vertices array in a vertex buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
     // 3. copy our index array in a element buffer for OpenGL to use
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -104,6 +105,13 @@ int main() {
 
         shader.use();
         shader.setFloat("someUniform", 1.0f);
+        vertices[0] = sin(i);
+        vertices[3] = sin(i);
+        vertices[6] = sin(i) + 1.0f;
+        vertices[9] = sin(i) + 1.0f;
+        i += 0.01;
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
