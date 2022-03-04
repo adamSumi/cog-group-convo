@@ -7,10 +7,11 @@
 #include <unistd.h>
 #include <thread>
 #include "orientation_message_generated.h"
+#include "flatbuffers/minireflect.h"
 
 #define PORT 65432
 
-void print_connection_qr(const std::string *presentation_method) {
+void print_connection_qr(const int *presentation_method) {
     struct ifaddrs *ifap, *ifa;
     struct sockaddr_in *sa;
     char *addr;
@@ -20,7 +21,7 @@ void print_connection_qr(const std::string *presentation_method) {
             sa = (struct sockaddr_in *) ifa->ifa_addr;
             addr = inet_ntoa(sa->sin_addr);
             std::string interface = std::string(ifa->ifa_name);
-            if (interface == "wlp3s0" || interface == "wlan0") {
+            if (interface == "wlp3s0" || interface == "wlan0" || interface == "en0") {
                 std::ostringstream command;
 
                 std::string address = std::string(addr);
@@ -29,6 +30,8 @@ void print_connection_qr(const std::string *presentation_method) {
                 std::cout << "Command is: " << command.str() << std::endl;
                 system(command.str().c_str());
                 break;
+            } else {
+                std::cout << "Interface: " << interface << " Address: " << addr << std::endl;
             }
         }
     }
@@ -47,10 +50,36 @@ void read_orientation(int socket) {
 }
 
 
-int main() {
-    const std::string presentation_method = "1";
+int main(int argc, char **argv) {
+    int presentation_method = 1;
+    [[maybe_unused]] int video_section = 1;
+    int cmd_opt;
+    while ((cmd_opt = getopt(argc, argv, "v:p:")) != -1) {  // for each option...
+        switch (cmd_opt) {
+            case 'v':
+                video_section = std::stoi(optarg);
+                if (video_section <= 0 || video_section > 4) {
+                    std::cerr << "Please pick a video section between 1-4." << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'p':
+                presentation_method = std::stoi(optarg);
+                if (presentation_method <= 0 || presentation_method > 4) {
+                    std::cerr << "Please pick a presentation method between 1-4." << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            default:
+                std::cerr << "Unknown option: '" << char(optopt) << "'!" << std::endl;
+                break;
+        }
+    }
+    std::cout << "Using presentation method: " << presentation_method << std::endl;
+    std::cout << "Playing video section: " << video_section << std::endl;
+
     print_connection_qr(&presentation_method);
-    int server_fd, new_socket, valread;
+    int server_fd, new_socket;
     struct sockaddr_in address{};
     int opt = 1;
     int addrlen = sizeof(address);
@@ -87,18 +116,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
     std::cout << "Received connection." << std::endl;
-    char buffer[1024] = {0};
-    size_t num_bytes_read = read(new_socket, buffer, 1024);
-    while (num_bytes_read != -1) {
-        std::cout << "Read " << num_bytes_read << " bytes." << std::endl;
-        std::cout << "Getting orientation message." << std::endl;
-        auto orientation_message = cog::GetSizePrefixedOrientationMessage(buffer);
-        std::cout << "Got orientation message." << std::endl;
-        std::cout << "azimuth: " << orientation_message->azimuth() << std::endl;
-        std::cout << "pitch: " << orientation_message->pitch() << std::endl;
-        std::cout << "roll: " << orientation_message->roll() << std::endl;
-        num_bytes_read = read(new_socket, buffer, 1024);
-    }
+    read_orientation(new_socket);
 //    std::thread read_orientation_thread(read_orientation, new_socket);
 //    read_orientation_thread.join();
     return 0;
