@@ -36,17 +36,20 @@ void print_connection_qr(const int *presentation_method) {
     freeifaddrs(ifap);
 }
 
+
 void read_orientation(int socket) {
     std::array<char, 1024> buffer{};
     size_t num_bytes_read = read(socket, buffer.data(), buffer.size());
     while (num_bytes_read != -1) {
+        if (num_bytes_read == 0) {
+            continue;
+        }
         auto orientation_message = cog::GetOrientationMessage(buffer.data());
         std::cout << "azimuth: " << orientation_message->azimuth() << ", pitch: " << orientation_message->pitch()
                   << ", roll: " << orientation_message->roll() << std::endl;
         num_bytes_read = read(socket, buffer.data(), buffer.size());
     }
 }
-
 
 int main(int argc, char **argv) {
     int presentation_method = 1;
