@@ -6,9 +6,27 @@
 #include <ifaddrs.h>
 #include <unistd.h>
 #include "orientation_message_generated.h"
+#include <thread>
+#include <cmath>
+
+#ifdef __APPLE_CC__
+
+#include <GL/glut.h>
+
+#else
+#include <GL/glut.h>
+#endif
 
 #define PORT 65432
 
+cog::OrientationMessage const *current_orientation = nullptr;
+std::mutex orientation_mutex;
+
+/**
+ * Prints a QR code to the console. The QR code's contents are formatted as follows:
+ * "<MACHINE_IP_ADDR>:<PORT> <PRESENTATION_METHOD>"
+ * @param presentation_method
+ */
 void print_connection_qr(const int *presentation_method) {
     struct ifaddrs *ifap, *ifa;
     struct sockaddr_in *sa;
@@ -36,22 +54,50 @@ void print_connection_qr(const int *presentation_method) {
     freeifaddrs(ifap);
 }
 
-
 void read_orientation(int socket, sockaddr_in client_address) {
     size_t len, num_bytes_read;
     std::array<char, 1024> buffer{};
-    len = sizeof(client_address);  //len is value/resuslt
+    len = sizeof(client_address);
 
     num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
                               MSG_WAITALL, (struct sockaddr *) &client_address,
                               reinterpret_cast<socklen_t *>(&len));
     while (num_bytes_read != -1) {
-        auto orientation_message = cog::GetOrientationMessage(buffer.data());
-        std::cout << "azimuth: " << orientation_message->azimuth() << std::endl;
+        orientation_mutex.lock();
+        current_orientation = cog::GetOrientationMessage(buffer.data());
+        orientation_mutex.unlock();
         num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
                                   MSG_WAITALL, (struct sockaddr *) &client_address,
                                   reinterpret_cast<socklen_t *>(&len));
     }
+}
+
+void display() {
+    orientation_mutex.lock();
+    auto angle = current_orientation->azimuth() * 180 / std::acos(-1);
+    orientation_mutex.unlock();
+
+    auto left_x = std::cos(angle + 2 * 20);
+    auto right_x = left_x + 0.25;
+
+    // Set every pixel in the frame buffer to the current clear color.
+    glClearColor(1, 1, 1, 1);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Drawing is done by specifying a sequence of vertices.  The way these
+    // vertices are connected (or not connected) depends on the argument to
+    // glBegin.  GL_POLYGON constructs a filled polygon.
+    glBegin(GL_POLYGON);
+    glColor3f(0, 0, 0);
+    glVertex3f(left_x, -0.25, 0);
+    glVertex3f(left_x, 0.25, 0);
+    glVertex3f(right_x, 0.25, 0);
+    glVertex3f(right_x, -0.25, 0);
+    glEnd();
+
+    // Flush drawing command buffer to make drawing happen as soon as possible.
+    glutSwapBuffers();
 }
 
 int main(int argc, char **argv) {
@@ -107,9 +153,24 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
+    std::thread read_orientation_thread(read_orientation, sockfd, cliaddr);
+    while (true) {
+        orientation_mutex.lock();
+        if (current_orientation != nullptr) {
+            std::cout << "Orientation is not nullptr" << std::endl;
+            orientation_mutex.unlock();
+            break;
+        }
+        orientation_mutex.unlock();
+    }
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 
-    read_orientation(sockfd, cliaddr);
-//    std::thread read_orientation_thread(read_orientation, new_socket);
-//    read_orientation_thread.join();
-    return 0;
+    glutInitWindowPosition(80, 80);
+    glutInitWindowSize(400, 300);
+    glutCreateWindow("A simple triangle.");
+
+    glutDisplayFunc(display);
+    glutIdleFunc(glutPostRedisplay);
+    glutMainLoop();
 }
