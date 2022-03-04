@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include "orientation_message_generated.h"
 #include <thread>
+#include <numeric>
+#include <deque>
 #include <cmath>
 
 #ifdef __APPLE_CC__
@@ -18,9 +20,14 @@
 #endif
 
 #define PORT 65432
+#define DISTANCE_FROM_SCREEN 20 // 20 what?
+#define BACKDROP_WIDTH 0.5
+#define BACKDROP_HEIGHT 0.4
+#define MOVING_AVG_SIZE 3000
 
 cog::OrientationMessage const *current_orientation = nullptr;
 std::mutex orientation_mutex;
+std::deque<float> orientation_buffer;
 
 /**
  * Prints a QR code to the console. The QR code's contents are formatted as follows:
@@ -64,7 +71,11 @@ void read_orientation(int socket, sockaddr_in client_address) {
                               reinterpret_cast<socklen_t *>(&len));
     while (num_bytes_read != -1) {
         orientation_mutex.lock();
+        if (orientation_buffer.size() == MOVING_AVG_SIZE) {
+            orientation_buffer.pop_front();
+        }
         current_orientation = cog::GetOrientationMessage(buffer.data());
+        orientation_buffer.push_back(current_orientation->azimuth());
         orientation_mutex.unlock();
         num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
                                   MSG_WAITALL, (struct sockaddr *) &client_address,
@@ -73,12 +84,17 @@ void read_orientation(int socket, sockaddr_in client_address) {
 }
 
 void display() {
+    if (orientation_buffer.empty()) {
+        return;
+    }
     orientation_mutex.lock();
-    auto angle = current_orientation->azimuth() * 180 / std::acos(-1);
+    double average_azimuth =
+            std::accumulate(orientation_buffer.begin(), orientation_buffer.end(), 0.0) / orientation_buffer.size();
+    auto angle = average_azimuth;
     orientation_mutex.unlock();
 
-    auto left_x = std::cos(angle + 2 * 20);
-    auto right_x = left_x + 0.25;
+    auto left_x = std::cos(angle + 2 * DISTANCE_FROM_SCREEN);
+    auto right_x = left_x + BACKDROP_WIDTH;
 
     // Set every pixel in the frame buffer to the current clear color.
     glClearColor(1, 1, 1, 1);
@@ -90,10 +106,10 @@ void display() {
     // glBegin.  GL_POLYGON constructs a filled polygon.
     glBegin(GL_POLYGON);
     glColor3f(0, 0, 0);
-    glVertex3f(left_x, -0.25, 0);
-    glVertex3f(left_x, 0.25, 0);
-    glVertex3f(right_x, 0.25, 0);
-    glVertex3f(right_x, -0.25, 0);
+    glVertex3f(left_x, -BACKDROP_HEIGHT / 2, 0);
+    glVertex3f(left_x, BACKDROP_HEIGHT / 2, 0);
+    glVertex3f(right_x, BACKDROP_HEIGHT / 2, 0);
+    glVertex3f(right_x, -BACKDROP_HEIGHT / 2, 0);
     glEnd();
 
     // Flush drawing command buffer to make drawing happen as soon as possible.
