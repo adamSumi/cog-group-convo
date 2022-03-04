@@ -5,9 +5,7 @@
 #include <iostream>
 #include <ifaddrs.h>
 #include <unistd.h>
-#include <thread>
 #include "orientation_message_generated.h"
-#include "flatbuffers/minireflect.h"
 
 #define PORT 65432
 
