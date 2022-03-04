@@ -1,66 +1,105 @@
-#include <cstdio>
 #include <cstdlib>
-#include <unistd.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string>
 #include <iostream>
+#include <ifaddrs.h>
+#include <unistd.h>
+#include <thread>
+#include "orientation_message_generated.h"
 
 #define PORT 65432
 
-// Returns hostname for the local computer
-void checkHostName(int hostname) {
-    if (hostname == -1) {
-        perror("gethostname");
-        exit(1);
+void print_connection_qr(const std::string *presentation_method) {
+    struct ifaddrs *ifap, *ifa;
+    struct sockaddr_in *sa;
+    char *addr;
+    getifaddrs(&ifap);
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
+            sa = (struct sockaddr_in *) ifa->ifa_addr;
+            addr = inet_ntoa(sa->sin_addr);
+            std::string interface = std::string(ifa->ifa_name);
+            if (interface == "wlp3s0" || interface == "wlan0") {
+                std::ostringstream command;
+
+                std::string address = std::string(addr);
+                std::string address_port = address + ":" + std::to_string(PORT);
+                command << "qrencode -t ANSI \"" << addr << ":" << PORT << " " << *presentation_method << "\"";
+                std::cout << "Command is: " << command.str() << std::endl;
+                system(command.str().c_str());
+                break;
+            }
+        }
+    }
+    freeifaddrs(ifap);
+}
+
+void read_orientation(int socket) {
+    std::array<char, 1024> buffer{};
+    size_t num_bytes_read = read(socket, buffer.data(), buffer.size());
+    while (num_bytes_read != -1) {
+        auto orientation_message = cog::GetOrientationMessage(buffer.data());
+        std::cout << "azimuth: " << orientation_message->azimuth() << ", pitch: " << orientation_message->pitch()
+                  << ", roll: " << orientation_message->roll() << std::endl;
+        num_bytes_read = read(socket, buffer.data(), buffer.size());
     }
 }
 
-// Returns host information corresponding to host name
-void checkHostEntry(struct hostent *hostentry) {
-    if (hostentry == nullptr) {
-        perror("gethostbyname");
-        exit(1);
-    }
-}
 
-// Converts space-delimited IPv4 addresses
-// to dotted-decimal format
-void checkIPbuffer(const char *IPbuffer) {
-    if (nullptr == IPbuffer) {
-        perror("inet_ntoa");
-        exit(1);
-    }
-}
-
-// Driver code
 int main() {
-    char hostbuffer[256];
-    char *IPbuffer;
-    struct hostent *host_entry;
-    int hostname;
+    const std::string presentation_method = "1";
+    print_connection_qr(&presentation_method);
+    int server_fd, new_socket, valread;
+    struct sockaddr_in address{};
+    int opt = 1;
+    int addrlen = sizeof(address);
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
 
-    // To retrieve hostname
-    hostname = gethostname(hostbuffer, sizeof(hostbuffer));
-    checkHostName(hostname);
+    // Forcefully attaching socket to the port 8080
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR,
+                   &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
 
-    // To retrieve host information
-    host_entry = gethostbyname(hostbuffer);
-    checkHostEntry(host_entry);
-
-    // To convert an Internet network
-    // address into ASCII string
-    IPbuffer = inet_ntoa(*((struct in_addr *)
-            host_entry->h_addr_list[0]));
-
-    printf("Hostname: %s\n", hostbuffer);
-    printf("Host IP: %s\n", IPbuffer);
-
-    std::string ip_port = std::string(IPbuffer) + std::to_string(PORT);
-    std::string presentation_method = "1";
-    std::string command = std::string("qrencode -t ANSI \"") + ip_port + " " + presentation_method + "\"";
-    std::cout << "Command is: " << command << std::endl;
-    system(command.c_str());
+    // Forcefully attaching socket to the port 8080
+    if (bind(server_fd, (struct sockaddr *) &address,
+             sizeof(address)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+    std::cout << "Waiting for connection." << std::endl;
+    if ((new_socket = accept(server_fd, (struct sockaddr *) &address,
+                             (socklen_t *) &addrlen)) < 0) {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+    std::cout << "Received connection." << std::endl;
+    char buffer[1024] = {0};
+    size_t num_bytes_read = read(new_socket, buffer, 1024);
+    while (num_bytes_read != -1) {
+        std::cout << "Read " << num_bytes_read << " bytes." << std::endl;
+        std::cout << "Getting orientation message." << std::endl;
+        auto orientation_message = cog::GetSizePrefixedOrientationMessage(buffer);
+        std::cout << "Got orientation message." << std::endl;
+        std::cout << "azimuth: " << orientation_message->azimuth() << std::endl;
+        std::cout << "pitch: " << orientation_message->pitch() << std::endl;
+        std::cout << "roll: " << orientation_message->roll() << std::endl;
+        num_bytes_read = read(new_socket, buffer, 1024);
+    }
+//    std::thread read_orientation_thread(read_orientation, new_socket);
+//    read_orientation_thread.join();
     return 0;
 }
