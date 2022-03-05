@@ -1,8 +1,16 @@
 cmake_minimum_required(VERSION 3.21)
 project(cog_group_convo_cpp)
+include(FetchContent)
 
-set(CMAKE_CXX_STANDARD 17)
-set(GL_SILENCE_DEPRECATION 1) # Most of these functions are deprecated on MacOS, but oh well
+FetchContent_Declare(json
+        URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz
+        )
+FetchContent_GetProperties(json)
+if (NOT json_POPULATED)
+    FetchContent_Populate(json)
+    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif ()
+set(CMAKE_CXX_STANDARD 20)
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
 set(SOURCES
@@ -24,4 +32,5 @@ add_subdirectory(${FLATBUFFERS_SRC_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-build
         EXCLUDE_FROM_ALL)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers Threads::Threads OpenGL::GL ${GLUT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers Threads::Threads OpenGL::GL ${GLUT_LIBRARIES} nlohmann_json::nlohmann_json)
+file(COPY ${SRC_DIR}/captions DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
