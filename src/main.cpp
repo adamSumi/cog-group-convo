@@ -35,6 +35,9 @@ cog::OrientationMessage const *current_orientation = nullptr;
 std::mutex orientation_mutex;
 std::deque<float> orientation_buffer;
 
+FT_Library library;
+FT_Face face;
+
 std::mutex socket_mutex;
 
 /**
@@ -199,6 +202,18 @@ int main(int argc, char **argv) {
     }
     std::cout << "Using presentation method: " << presentation_method << std::endl;
     std::cout << "Playing video section: " << video_section << std::endl;
+
+    FT_Error error = FT_Init_FreeType(&library);
+    if (error) {
+        std::cerr << "Error initializing FreeType." << std::endl;
+    }
+    error = FT_New_Face(library, "~/Library/Fonts/Roboto-Regular.ttf", 0, &face);
+
+    if (error == FT_Err_Unknown_File_Format) {
+        std::cerr << "The file could be open and read, but its format is unsupported." << std::endl;
+    } else if (error) {
+        std::cerr << "Some other error occurred while opening the given font." << std::endl;
+    }
 
     nlohmann::json json;
     std::ifstream captions_file("captions/merged_captions.1.json");
