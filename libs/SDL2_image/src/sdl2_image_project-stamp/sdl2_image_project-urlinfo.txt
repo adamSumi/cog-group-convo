@@ -1,0 +1,3 @@
+repository='external project URL'
+module='https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.0.tar.gz'
+tag=''
