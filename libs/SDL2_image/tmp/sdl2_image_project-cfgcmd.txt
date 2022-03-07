@@ -1,1 +1,0 @@
-cmd='LDFLAGS=-L/Users/quontas/CLionProjects/cog-group-convo-cpp/libs/SDL2/src/sdl2_project-build;CFLAGS=-I/Users/quontas/CLionProjects/cog-group-convo-cpp/libs/SDL2/src/sdl2_project/include;SDL2_CONFIG=/Users/quontas/CLionProjects/cog-group-convo-cpp/libs/SDL2/src/sdl2_project-build/sdl2-config;<SOURCE_DIR>/configure;--prefix=<INSTALL_DIR>;--enable-shared=no'

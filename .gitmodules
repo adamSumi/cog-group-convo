@@ -4,3 +4,6 @@
 [submodule "libs/flatbuffers"]
 	path = libs/flatbuffers
 	url = https://github.com/google/flatbuffers
+[submodule "include/cog-flatbuffer-definitions"]
+	path = include/cog-flatbuffer-definitions
+	url = https://github.com/SaltyQuetzals/cog-flatbuffer-definitions

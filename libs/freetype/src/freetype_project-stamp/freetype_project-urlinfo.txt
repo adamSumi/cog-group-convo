@@ -1,3 +1,0 @@
-repository='external project URL'
-module='http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz'
-tag=''
