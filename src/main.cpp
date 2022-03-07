@@ -19,7 +19,8 @@
 
 #include <GL/glut.h>
 #include <fstream>
-
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #else
 #include <GL/glut.h>
 #endif

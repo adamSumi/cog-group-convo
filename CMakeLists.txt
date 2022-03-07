@@ -17,14 +17,13 @@ set(SOURCES
         src/main.cpp
         )
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_include_directories(${PROJECT_NAME}
-        PRIVATE
-        ${SRC_DIR}
-        )
+
 include_directories(cog-flatbuffer-definitions)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(Threads)
+find_package(Freetype REQUIRED)
+
 
 # Add FlatBuffers directly to our build. This defines the `flatbuffers` target.
 set(FLATBUFFERS_SRC_DIR ${LIB_DIR}/flatbuffers)
@@ -32,5 +31,10 @@ add_subdirectory(${FLATBUFFERS_SRC_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-build
         EXCLUDE_FROM_ALL)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers Threads::Threads OpenGL::GL ${GLUT_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PRIVATE flatbuffers Threads::Threads OpenGL::GL ${GLUT_LIBRARIES} nlohmann_json::nlohmann_json ${FREETYPE_LIBRARIES})
 file(COPY ${SRC_DIR}/captions DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJECT_NAME}
+        PRIVATE
+        ${SRC_DIR}
+        ${FREETYPE_INCLUDE_DIRS}
+        )
