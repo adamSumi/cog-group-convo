@@ -5,6 +5,7 @@
 #include <sstream>
 #include <tuple>
 #include <cstring>
+#include <getopt.h>
 #include "cog-flatbuffer-definitions/caption_message_generated.h"
 
 /**
