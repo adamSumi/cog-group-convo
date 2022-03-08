@@ -7,3 +7,12 @@
 [submodule "include/cog-flatbuffer-definitions"]
 	path = include/cog-flatbuffer-definitions
 	url = https://github.com/SaltyQuetzals/cog-flatbuffer-definitions
+[submodule "libs/SDL_ttf"]
+	path = libs/SDL_ttf
+	url = https://github.com/libsdl-org/SDL_ttf
+[submodule "libs/SDL"]
+	path = libs/SDL
+	url = https://github.com/libsdl-org/SDL
+[submodule "libs/json"]
+	path = libs/json
+	url = https://github.com/nlohmann/json

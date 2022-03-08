@@ -1,5 +1,3 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include <cstdio>
 #include <getopt.h>
 #include <iostream>
@@ -16,10 +14,11 @@
 #define SCREEN_HEIGHT   960
 
 #define WINDOW_TITLE    "SDL2"
-#define SIZE 36
+#define SIZE 18
 
 #define REGISTERED_GRAPHICS 1
 #define NONREGISTERED_GRAPHICS 2
+#include <vlc/libvlc.h>
 
 
 int main(int argc, char *argv[]) {

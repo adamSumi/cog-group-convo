@@ -20,7 +20,7 @@ private:
     cog::Juror current_speaker;
     std::mutex text_mutex;
     bool clear_on_speaker_change = false;
-    static const int LINE_WIDTH = 50;
+    static const int LINE_WIDTH = 40;
     static const int SPACE_WIDTH = 1;
 
     void wrap_text(const std::string &text) {
@@ -45,7 +45,7 @@ private:
         if (wrapped.size() == 1) {
             wrapped_speech = wrapped.front();
         } else {
-            wrapped_speech = wrapped.rbegin()[1] + " " + wrapped.rbegin()[0];
+            wrapped_speech = wrapped.rbegin()[1] + "\n" + wrapped.rbegin()[0];
         }
     }
 

@@ -3,10 +3,9 @@
 
 #include <mutex>
 #include <deque>
-#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "orientation.hpp"
 #include "captions.hpp"
-#include <SDL2/SDL_ttf.h>
 
 #define DISTANCE_FROM_SCREEN 20
 #define WRAP_LENGTH 0

@@ -3,6 +3,8 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <sstream>
+#include <tuple>
+#include <cstring>
 
 /**
  * Prints a QR code to the console. The QR code's contents are formatted as follows:
