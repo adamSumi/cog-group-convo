@@ -14,39 +14,17 @@
 #define SCREEN_HEIGHT   960
 
 #define WINDOW_TITLE    "SDL2"
-#define SIZE 18
 
 #define REGISTERED_GRAPHICS 1
 #define NONREGISTERED_GRAPHICS 2
+
 #include <vlc/libvlc.h>
 
 
 int main(int argc, char *argv[]) {
+    const auto[video_section, presentation_method, fg, bg, path_to_font, font_size] = parse_arguments(
+            argc, argv);
 
-    int presentation_method = 1;
-    [[maybe_unused]] int video_section = 1;
-    int cmd_opt;
-    while ((cmd_opt = getopt(argc, argv, "v:p:")) != -1) {  // for each option...
-        switch (cmd_opt) {
-            case 'v':
-                video_section = std::stoi(optarg);
-                if (video_section <= 0 || video_section > 4) {
-                    std::cerr << "Please pick a video section between 1-4." << std::endl;
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            case 'p':
-                presentation_method = std::stoi(optarg);
-                if (presentation_method <= 0 || presentation_method > 4) {
-                    std::cerr << "Please pick a presentation method between 1-4." << std::endl;
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            default:
-                std::cerr << "Unknown option: '" << char(optopt) << "'!" << std::endl;
-                break;
-        }
-    }
     std::cout << "Using presentation method: " << presentation_method << std::endl;
     std::cout << "Playing video section: " << video_section << std::endl;
     print_connection_qr(presentation_method, PORT);
@@ -68,11 +46,10 @@ int main(int argc, char *argv[]) {
     }
 //    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     auto renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    std::string font_path = "resources/fonts/Roboto-Regular.ttf";
-    TTF_Font *font = TTF_OpenFont(font_path.c_str(), SIZE);
+    TTF_Font *font = TTF_OpenFont(path_to_font.c_str(), font_size);
 
-    SDL_Color foreground_color = {255, 255, 255};
-    SDL_Color background_color = {0, 0, 0};
+    SDL_Color foreground_color = {fg.at(0), fg.at(1), fg.at(2), fg.at(3)};
+    SDL_Color background_color = {bg.at(0), bg.at(1), bg.at(2), bg.at(3)};
 
     std::mutex azimuth_mutex;
     std::deque<float> azimuth_buffer;

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <tuple>
 #include <cstring>
+#include "cog-flatbuffer-definitions/caption_message_generated.h"
 
 /**
  * Prints a QR code to the console. The QR code's contents are formatted as follows:
@@ -64,4 +65,78 @@ std::tuple<int, sockaddr_in> connect_to_client(int port) {
         exit(EXIT_FAILURE);
     }
     return std::make_tuple(sockfd, cliaddr);
+}
+
+using RGBA = std::array<uint8_t, 4>;
+
+RGBA color_string_to_rgba(const std::string &color_str) {
+    RGBA result{0, 0, 0, 0};
+    std::stringstream s_stream(color_str); //create string stream from the string
+    for (auto &elem: result) {
+        std::string substr;
+        getline(s_stream, substr, ','); //get first string delimited by comma
+        elem = std::stoi(substr);
+    }
+    return result;
+}
+
+static struct option long_options[] = {
+        {"video_section",       required_argument, nullptr, 'v'},
+        {"presentation_method", required_argument, nullptr, 'm'},
+        {"foreground_color",    required_argument, nullptr, 'f'},
+        {"background_color",    required_argument, nullptr, 'b'},
+        {"path_to_font",        required_argument, nullptr, 'p'},
+        {"font_size",           required_argument, nullptr, 's'}
+};
+
+std::tuple<int, int , RGBA, RGBA, std::string, int>
+parse_arguments(int argc, char *argv[]) {
+    int video_section;
+    int presentation_method;
+    RGBA foreground_color{0, 0, 0, 0};
+    RGBA background_color{0, 0, 0, 0};
+    std::string path_to_font;
+    int font_size;
+    int cmd_opt;
+    int option_index = 0;
+    std::string fg_color_str;
+    std::string bg_color_str;
+    cmd_opt = getopt_long(argc, argv, "v:m:f:b:p:s:", long_options, &option_index);
+    while (cmd_opt) {
+        if (cmd_opt == -1) {
+            break;
+        }
+        switch (cmd_opt) {
+            case 'v':
+                video_section = std::stoi(optarg);
+                if (video_section <= 0 || video_section > 4) {
+                    std::cerr << "Please pick a video section between 1-4." << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'm':
+                presentation_method = std::stoi(optarg);
+                break;
+            case 'f':
+                fg_color_str = std::string(optarg);
+                foreground_color = color_string_to_rgba(fg_color_str);
+                break;
+            case 'b':
+                bg_color_str = std::string(optarg);
+                background_color = color_string_to_rgba(bg_color_str);
+                break;
+            case 'p':
+                path_to_font = std::string(optarg);
+                break;
+            case 's':
+                font_size = std::stoi(optarg);
+                break;
+            case '?':
+            default:
+                std::cerr << "Unknown option received: " << cmd_opt << std::endl;
+        }
+        cmd_opt = getopt_long(argc, argv, "v:m:f:b:p:s:", long_options, &option_index);
+    }
+    return std::make_tuple(video_section, presentation_method, foreground_color, background_color, path_to_font,
+                           font_size);
 }
