@@ -16,7 +16,7 @@
 #define SCREEN_HEIGHT   960
 
 #define WINDOW_TITLE    "SDL2"
-#define SIZE 18
+#define SIZE 36
 
 #define REGISTERED_GRAPHICS 1
 #define NONREGISTERED_GRAPHICS 2
@@ -52,31 +52,28 @@ int main(int argc, char *argv[]) {
     std::cout << "Playing video section: " << video_section << std::endl;
     print_connection_qr(presentation_method, PORT);
     auto[socket, cliaddr] = connect_to_client(PORT);
-    SDL_Init(0);
-    SDL_Window *window;                      // The window we are rendering to
-    SDL_Surface *screen_surface;              // The surface contained by the window
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
         return 1;
     }
-
-    window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                              SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == nullptr) {
-        printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Renderer *renderer = SDL_GetRenderer(window);
-
     if (TTF_Init() == -1) {
         printf("[ERROR] TTF_Init() Failed with: %s\n", TTF_GetError());
         exit(2);
     }
-    SDL_Color foreground_color = {0xff, 0xff, 0xff};
-    SDL_Color background_color = {0x0, 0x0, 0x0};
+
+    auto window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
+                                   SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    if (window == nullptr) {
+        printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    auto renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     std::string font_path = "resources/fonts/Roboto-Regular.ttf";
     TTF_Font *font = TTF_OpenFont(font_path.c_str(), SIZE);
+
+    SDL_Color foreground_color = {255, 255, 255};
+    SDL_Color background_color = {0, 0, 0};
 
     std::mutex azimuth_mutex;
     std::deque<float> azimuth_buffer;
@@ -84,39 +81,33 @@ int main(int argc, char *argv[]) {
     std::thread read_orientation_thread(read_orientation, socket, cliaddr, &socket_mutex, &azimuth_mutex,
                                         &azimuth_buffer);
 
-//    nlohmann::json json;
-//    std::ifstream captions_file("resources/captions/merged_captions.1.json");
-//    captions_file >> json;
-//    auto caption_model = CaptionModel(true);
-//
-//    std::thread play_captions_thread(play_captions, &json, &caption_model);
+    nlohmann::json json;
+    std::ifstream captions_file("resources/captions/merged_captions.1.json");
+    captions_file >> json;
+    auto caption_model = CaptionModel(true);
+
+    std::thread play_captions_thread(play_captions, &json, &caption_model);
     SDL_Event e;
     bool quit = false;
     while (!quit) {
         switch (presentation_method) {
             case NONREGISTERED_GRAPHICS:
-                render_nonregistered_captions(&azimuth_mutex, &azimuth_buffer, screen_surface, font, &foreground_color,
-                                              &background_color);
+                render_nonregistered_captions(&azimuth_mutex, &azimuth_buffer, renderer, font, &foreground_color,
+                                              &background_color, &caption_model);
                 break;
             case REGISTERED_GRAPHICS:
             default:
                 break;
         }
-        SDL_UpdateWindowSurface(window);
-
+        SDL_RenderPresent(renderer);
         if (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-            if (e.type == SDL_KEYDOWN) {
-                quit = true;
-            }
-            if (e.type == SDL_MOUSEBUTTONDOWN) {
                 quit = true;
             }
         }
     }
     TTF_CloseFont(font);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     TTF_Quit();
     SDL_Quit();

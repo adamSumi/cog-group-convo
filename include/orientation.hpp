@@ -19,23 +19,18 @@ void read_orientation(int socket, sockaddr_in client_address, std::mutex *socket
     std::array<char, 1024> buffer{};
     len = sizeof(client_address);
 
-    std::cout << "Locking socket mutex" << std::endl;
     socket_mutex->lock();
     num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
                               MSG_WAITALL, (struct sockaddr *) &client_address,
                               reinterpret_cast<socklen_t *>(&len));
-    std::cout << "Unlocking socket mutex" << std::endl;
     socket_mutex->unlock();
     while (num_bytes_read != -1) {
-        std::cout << "Locking azimuth mutex" << std::endl;
         azimuth_mutex->lock();
         if (orientation_buffer->size() == MOVING_AVG_SIZE) {
             orientation_buffer->pop_front();
         }
         auto current_orientation = cog::GetOrientationMessage(buffer.data());
         orientation_buffer->push_back(current_orientation->azimuth());
-        std::cout << "current_orientation->azimuth() = " << current_orientation->azimuth() << std::endl;
-        std::cout << "Unlocking azimuth mutex" << std::endl;
         azimuth_mutex->unlock();
         socket_mutex->lock();
         num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
