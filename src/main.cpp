@@ -67,11 +67,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    screen_surface = SDL_GetWindowSurface(window);
     SDL_Renderer *renderer = SDL_GetRenderer(window);
-    SDL_FillRect(screen_surface, nullptr,
-                 SDL_MapRGB(screen_surface->format, 0xff, 0xff, 0xff)); // Set a gray background canvas
-    SDL_UpdateWindowSurface(window);
 
     if (TTF_Init() == -1) {
         printf("[ERROR] TTF_Init() Failed with: %s\n", TTF_GetError());
@@ -97,9 +93,6 @@ int main(int argc, char *argv[]) {
     SDL_Event e;
     bool quit = false;
     while (!quit) {
-//        SDL_FillRect(screen_surface, nullptr,
-//                     SDL_MapRGB(screen_surface->format, 0xff, 0xff, 0xff)); // Set a gray background canvas
-//        SDL_UpdateWindowSurface(window);
         switch (presentation_method) {
             case NONREGISTERED_GRAPHICS:
                 render_nonregistered_captions(&azimuth_mutex, &azimuth_buffer, screen_surface, font, &foreground_color,
