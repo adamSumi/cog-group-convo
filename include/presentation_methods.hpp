@@ -9,6 +9,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #define DISTANCE_FROM_SCREEN 20
+#define WRAP_LENGTH 0
 
 
 void render_nonregistered_captions(std::mutex *azimuth_mutex,
@@ -22,8 +23,8 @@ void render_nonregistered_captions(std::mutex *azimuth_mutex,
     if (text.empty()) {
         return;
     }
-    std::cout << "text = \"" << text << "\"" << std::endl;
-    auto text_surface = TTF_RenderText_Shaded(font, text.c_str(), *foreground_color, *background_color);
+    auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *foreground_color, *background_color,
+                                                      WRAP_LENGTH);
     auto text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
     SDL_Rect destination;
     destination.w = text_surface->w;

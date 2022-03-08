@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
     }
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     auto renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     std::string font_path = "resources/fonts/Roboto-Regular.ttf";
     TTF_Font *font = TTF_OpenFont(font_path.c_str(), SIZE);

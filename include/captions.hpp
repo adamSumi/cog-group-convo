@@ -16,9 +16,39 @@
 class CaptionModel {
 private:
     std::string current_speech;
+    std::string wrapped_speech;
     cog::Juror current_speaker;
     std::mutex text_mutex;
     bool clear_on_speaker_change = false;
+    static const int LINE_WIDTH = 50;
+    static const int SPACE_WIDTH = 1;
+
+    void wrap_text(const std::string &text) {
+        std::istringstream iss(text);
+        std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},
+                                        std::istream_iterator<std::string>{}};
+        int space_left = LINE_WIDTH;
+        std::vector<std::string> wrapped;
+        for (const auto &token: tokens) {
+            if (wrapped.empty()) {
+                wrapped.push_back(token + " ");
+                continue;
+            }
+            if (token.length() + SPACE_WIDTH > space_left) {
+                wrapped.push_back(token + " ");
+                space_left = LINE_WIDTH - (int) token.length();
+            } else {
+                wrapped.back() += token + " ";
+                space_left -= (int) token.length() + SPACE_WIDTH;
+            }
+        }
+        if (wrapped.size() == 1) {
+            wrapped_speech = wrapped.front();
+        } else {
+            wrapped_speech = wrapped.rbegin()[1] + " " + wrapped.rbegin()[0];
+        }
+    }
+
 public:
     [[maybe_unused]] CaptionModel(bool clear_on_speaker_change) {
         this->clear_on_speaker_change = clear_on_speaker_change;
@@ -31,12 +61,13 @@ public:
             current_speaker = speaker;
         }
         current_speech += new_word + " ";
+        wrap_text(current_speech);
         text_mutex.unlock();
     }
 
     std::tuple<std::string, cog::Juror> get_current_text() {
         text_mutex.lock();
-        auto tuple = std::make_tuple(current_speech, current_speaker);
+        auto tuple = std::make_tuple(wrapped_speech, current_speaker);
         text_mutex.unlock();
         return tuple;
     }
