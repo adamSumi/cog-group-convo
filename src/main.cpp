@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
     // Initialise libVLC.
     libvlc = libvlc_new(vlc_argc, vlc_argv);
     if (nullptr == libvlc) {
-        printf("LibVLC initialization failure.\n");
+        printf("LibVLC initialization failure");
         return EXIT_FAILURE;
     }
 
