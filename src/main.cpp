@@ -19,9 +19,6 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-#define VIDEOWIDTH 320
-#define VIDEOHEIGHT 240
-
 //#include <format>
 
 #define WINDOW_TITLE    "SDL2"
@@ -50,17 +47,29 @@ static void unlock(void *data, void *id, void *const *p_pixels) {
     auto *pixels = (uint16_t *) *p_pixels;
 
     // We can also render stuff.
-    int x, y;
-    for (y = 10; y < 40; y++) {
-        for (x = 10; x < 40; x++) {
-            if (x < 13 || y < 13 || x > 36 || y > 36) {
-                pixels[y * VIDEOWIDTH + x] = 0xffff;
-            } else {
-                // RV16 = 5+6+5 pixels per color, BGR.
-                pixels[y * VIDEOWIDTH + x] = 0x02ff;
-            }
-        }
+
+    switch (c->presentation_method) {
+        case NONREGISTERED_GRAPHICS:
+            render_nonregistered_captions(c);
+            break;
+        case REGISTERED_GRAPHICS:
+        default:
+            std::cout << "Unknown method received: " << c->presentation_method << std::endl;
+            break;
     }
+    SDL_RenderPresent(c->renderer);
+
+//    int x, y;
+//    for (y = 10; y < 40; y++) {
+//        for (x = 10; x < 40; x++) {
+//            if (x < 13 || y < 13 || x > 36 || y > 36) {
+//                pixels[y * WIDTH + x] = 0xffff;
+//            } else {
+//                // RV16 = 5+6+5 pixels per color, BGR.
+//                pixels[y * WIDTH + x] = 0x02ff;
+//            }
+//        }
+//    }
 
     SDL_UnlockTexture(c->texture);
     SDL_UnlockMutex(c->mutex);
@@ -72,15 +81,15 @@ static void display(void *data, void *id) {
     auto *c = (AppContext *) data;
 
     SDL_Rect rect;
-    rect.w = VIDEOWIDTH;
-    rect.h = VIDEOHEIGHT;
-    rect.x = (int) ((1. + .5 * sin(0.03 * c->n)) * (WIDTH - VIDEOWIDTH) / 2);
-    rect.y = (int) ((1. + .5 * cos(0.03 * c->n)) * (HEIGHT - VIDEOHEIGHT) / 2);
+    rect.w = WIDTH;
+    rect.h = HEIGHT;
+    rect.x = 0;
+    rect.y = 0;
 
-    SDL_SetRenderDrawColor(c->renderer, 0, 80, 0, 255);
+    SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
     SDL_RenderClear(c->renderer);
     SDL_RenderCopy(c->renderer, c->texture, nullptr, &rect);
-    SDL_RenderPresent(c->renderer);
+//    SDL_RenderPresent(c->renderer);
 }
 
 int main(int argc, char *argv[]) {
@@ -104,6 +113,7 @@ int main(int argc, char *argv[]) {
     int done = 0, action, pause = 0;
 
     struct AppContext app_context{};
+    app_context.presentation_method = presentation_method;
 
     if (argc < 2) {
         printf("Usage: %s <filename>\n", argv[0]);
@@ -126,7 +136,7 @@ int main(int argc, char *argv[]) {
     }
     app_context.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     app_context.texture = SDL_CreateTexture(app_context.renderer, SDL_PIXELFORMAT_BGR565, SDL_TEXTUREACCESS_STREAMING,
-                                            VIDEOWIDTH, VIDEOHEIGHT);
+                                            WIDTH, HEIGHT);
     if (!app_context.texture) {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
     }
@@ -143,11 +153,12 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    m = libvlc_media_new_path(libvlc, "");
+    m = libvlc_media_new_path(libvlc, "resources/videos/juror-a.mp4");
     mp = libvlc_media_player_new_from_media(m);
     libvlc_media_release(m);
 
     TTF_Font *font = TTF_OpenFont(path_to_font.c_str(), font_size);
+    app_context.font = font;
 
     SDL_Color foreground_color = {fg.at(0), fg.at(1), fg.at(2), fg.at(3)};
     SDL_Color background_color = {bg.at(0), bg.at(1), bg.at(2), bg.at(3)};
@@ -169,8 +180,10 @@ int main(int argc, char *argv[]) {
     auto caption_model = CaptionModel(true);
     app_context.caption_model = &caption_model;
 
+    while (azimuth_buffer.empty()) {
+    }
     libvlc_video_set_callbacks(mp, lock, unlock, display, &app_context);
-    libvlc_video_set_format(mp, "RV16", VIDEOWIDTH, VIDEOHEIGHT, VIDEOWIDTH * 2);
+    libvlc_video_set_format(mp, "RV16", WIDTH, HEIGHT, WIDTH * 2);
     libvlc_media_player_play(mp);
 
     std::thread play_captions_thread(play_captions, &json, &caption_model);

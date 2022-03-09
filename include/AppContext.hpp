@@ -18,6 +18,7 @@ struct AppContext {
     SDL_Color* foreground_color;
     SDL_Color* background_color;
     CaptionModel* caption_model;
+    int presentation_method;
     int n;
 };
 #endif //COG_GROUP_CONVO_CPP_APPCONTEXT_HPP

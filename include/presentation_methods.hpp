@@ -12,18 +12,13 @@
 #define WRAP_LENGTH 0
 
 
-void render_nonregistered_captions(std::mutex *azimuth_mutex,
-                                   std::deque<float> *azimuth_buffer, AppContext *context,
-                                   TTF_Font *font,
-                                   SDL_Color *foreground_color,
-                                   SDL_Color *background_color,
-                                   CaptionModel *caption_model) {
-    auto left_x = calculate_current_orientation(azimuth_mutex, azimuth_buffer);
-    auto[text, juror] = caption_model->get_current_text();
+void render_nonregistered_captions(AppContext *context) {
+    auto left_x = calculate_current_orientation(context->azimuth_mutex, context->azimuth_buffer);
+    auto[text, juror] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
     }
-    auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *foreground_color, *background_color,
+    auto text_surface = TTF_RenderText_Shaded_Wrapped(context->font, text.c_str(), *(context->foreground_color), *(context->background_color),
                                                       WRAP_LENGTH);
     auto text_texture = SDL_CreateTextureFromSurface(context->renderer, text_surface);
     SDL_Rect destination;
@@ -33,7 +28,6 @@ void render_nonregistered_captions(std::mutex *azimuth_mutex,
     destination.y = 0;
     SDL_FreeSurface(text_surface);
     SDL_SetRenderDrawColor(context->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderClear(context->renderer);
     SDL_RenderCopy(context->renderer, text_texture, nullptr, &destination);
     SDL_DestroyTexture(text_texture);
 }
