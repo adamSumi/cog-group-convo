@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/clion,c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=clion,c++
 
+### Project-Specific ###
+videos/*.mp4
+
 ### C++ ###
 # Prerequisites
 *.d
