@@ -13,7 +13,7 @@ find_package(SDL2 REQUIRED)
 find_package(SDL2TTF)
 
 include_directories(include)
-add_executable(${PROJECT_NAME} src/main.cpp include/AppContext.hpp src/dummy.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 # Add FlatBuffers directly to our build. This defines the `flatbuffers` target.
 set(FLATBUFFERS_SRC_DIR libs/flatbuffers)

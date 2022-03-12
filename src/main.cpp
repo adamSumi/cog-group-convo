@@ -14,13 +14,18 @@
 
 #define PORT 65432
 
-#define WIDTH 1920 // How wide do we want the created window to be?
-#define HEIGHT 1080 // How tall do we want the created window to be?
+#define WIDTH 3840 // How wide do we want the created window to be?
+#define HEIGHT 2160 // How tall do we want the created window to be?
+
+#define FONT_SIZE_SMALL 12
+#define FONT_SIZE_MEDIUM 16
+#define FONT_SIZE_LARGE 18
 
 #define WINDOW_TITLE "Four Angry Men"
 
 #define REGISTERED_GRAPHICS 1
 #define NONREGISTERED_GRAPHICS 2
+#define NONREGISTERED_GRAPHICS_WITH_ARROWS 3
 
 
 /**
@@ -48,16 +53,21 @@ static void *lock(void *data, void **p_pixels) {
  */
 static void unlock(void *data, [[maybe_unused]] void *id, [[maybe_unused]] void *const *p_pixels) {
 
-    auto *app_context = (AppContext *) data;
+    const auto *app_context = (AppContext *) data;
 
     // Based on the presentation method selected by the researcher, we want to render captions in different ways.
     switch (app_context->presentation_method) {
+        case REGISTERED_GRAPHICS:
+            // Registered graphics remain stationary in space
+            render_registered_captions(app_context);
+            break;
         case NONREGISTERED_GRAPHICS:
             // Non-registered graphics follow the user's head orientation around the screen
             render_nonregistered_captions(app_context);
             break;
-        case REGISTERED_GRAPHICS:
-            // Registered graphics remain stationary in space
+        case NONREGISTERED_GRAPHICS_WITH_ARROWS:
+            render_nonregistered_captions_with_indicators(app_context);
+            break;
         default:
             std::cout << "Unknown method received: " << app_context->presentation_method << std::endl;
             break;
@@ -94,8 +104,8 @@ int main(int argc, char *argv[]) {
     presentation_method, // How will we be presenting captions?
     fg, // What color will the text be? RGBA format
     bg, // What color will the background behind the text be? RGBA format
-    path_to_font, // Where's the font located?
-    font_size // How big will the font be?
+    path_to_font, // Where's the smallest_font located?
+    font_size // How big will the smallest_font be?
     ] = parse_arguments(argc, argv);
 
     std::cout << "Using presentation method: " << presentation_method << std::endl;
@@ -109,8 +119,15 @@ int main(int argc, char *argv[]) {
 
     // Let's start building our application context. This is basically a struct that stores pointers to
     // important mutexes, buffers, and variables.
+    const std::map<cog::Juror, std::pair<double, double>> juror_positions{
+            {cog::Juror_JurorA,      {838.f / 1920.f, 431.f / 1080.f}},
+            {cog::Juror_JurorB,      {512.f / 1920.f, 452.f / 1080.f}},
+            {cog::Juror_JurorC,      {197.f / 1920.f, 528.f / 1080.f}},
+            {cog::Juror_JuryForeman, {963.f / 1920.f, 532.f / 1080.f}}
+    };
     struct AppContext app_context{};
     app_context.presentation_method = presentation_method;
+    app_context.juror_positions = &juror_positions;
     app_context.window_width = WIDTH;
     app_context.window_height = HEIGHT;
     app_context.y = app_context.window_height * 0.75;
@@ -127,8 +144,19 @@ int main(int argc, char *argv[]) {
         exit(2);
     }
 
-    TTF_Font *font = TTF_OpenFont(path_to_font.c_str(), font_size);
-    app_context.font = font;
+    TTF_Font *smallest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_SMALL);
+    TTF_Font *medium_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_MEDIUM);
+    TTF_Font *largest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_LARGE);
+    app_context.smallest_font = smallest_font;
+    app_context.medium_font = medium_font;
+    app_context.largest_font = largest_font;
+    const std::map<cog::Juror, TTF_Font *> juror_font_sizes{
+            {cog::Juror_JurorA,      smallest_font},
+            {cog::Juror_JurorB,      smallest_font},
+            {cog::Juror_JuryForeman, largest_font},
+            {cog::Juror_JurorC,      largest_font}
+    };
+    app_context.juror_font_sizes = &juror_font_sizes;
 
     SDL_Color foreground_color = {fg.at(0), fg.at(1), fg.at(2), fg.at(3)};
     SDL_Color background_color = {bg.at(0), bg.at(1), bg.at(2), bg.at(3)};
@@ -142,6 +170,7 @@ int main(int argc, char *argv[]) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
     }
+//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "Linear");
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     app_context.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -211,10 +240,12 @@ int main(int argc, char *argv[]) {
 //    }
     libvlc_media_player_play(mp);
     std::thread play_captions_thread(play_captions, &json, &caption_model);
-
     SDL_Event event;
+    int x, y;
     // Main loop.
     while (!done) {
+        SDL_GetMouseState(&x, &y);
+        SDL_Log("Mouse cursor is at %d, %d", x, y);
         action = 0;
 
         // Keys: enter (fullscreen), space (pause), escape (quit).
@@ -232,7 +263,6 @@ int main(int argc, char *argv[]) {
                         app_context.display_rect.w = app_context.window_width = event.window.data1;
                         app_context.display_rect.h = app_context.window_height = event.window.data2;
                         app_context.y = app_context.window_height * 0.75;
-
                     }
                     break;
             }
@@ -255,7 +285,7 @@ int main(int argc, char *argv[]) {
 
         SDL_Delay(1000 / 10);
     }
-    TTF_CloseFont(font);
+    TTF_CloseFont(smallest_font);
     SDL_DestroyMutex(app_context.mutex);
     SDL_DestroyRenderer(app_context.renderer);
     SDL_DestroyWindow(window);

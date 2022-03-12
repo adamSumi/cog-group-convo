@@ -14,7 +14,11 @@ struct AppContext {
     SDL_mutex *mutex;
     std::mutex* azimuth_mutex;
     std::deque<float>* azimuth_buffer;
-    TTF_Font* font;
+    TTF_Font* smallest_font;
+    TTF_Font* medium_font;
+    TTF_Font* largest_font;
+    const std::map<cog::Juror, std::pair<double, double>>* juror_positions;
+    const std::map<cog::Juror, TTF_Font*>* juror_font_sizes;
     SDL_Color* foreground_color;
     SDL_Color* background_color;
     CaptionModel* caption_model;

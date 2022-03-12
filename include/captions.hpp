@@ -20,18 +20,18 @@ private:
     const static int LINE_LENGTH = 80;
 
 
-    static std::string wrap(const std::string &text) {
+    static std::string wrap(const std::string &text, const int line_length) {
         std::istringstream words(text);
         std::vector<std::string> wrapped_lines;
         std::string word;
 
         if (words >> word) {
             wrapped_lines.emplace_back(word);
-            size_t space_left = LINE_LENGTH - word.length();
+            size_t space_left = line_length - word.length();
             while (words >> word) {
                 if (space_left < word.length() + 1) {
                     wrapped_lines.emplace_back(word);
-                    space_left = LINE_LENGTH - word.length();
+                    space_left = line_length - word.length();
                 } else {
                     wrapped_lines.back() += ' ' + word;
                     space_left -= word.length() + 1;
@@ -60,7 +60,7 @@ public:
         text_mutex.unlock();
     }
 
-    std::pair<cog::Juror, std::string> get_current_text() {
+    std::pair<cog::Juror, std::string> get_current_text(const int line_length = LINE_LENGTH) {
         std::string current_speech;
         cog::Juror current_juror = cog::Juror_JuryForeman;
         text_mutex.lock();
@@ -71,7 +71,7 @@ public:
             }
         }
         text_mutex.unlock();
-        return std::make_pair(current_juror, wrap(current_speech));
+        return std::make_pair(current_juror, wrap(current_speech, line_length));
     }
 };
 
