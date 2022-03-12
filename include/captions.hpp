@@ -15,61 +15,63 @@
 
 class CaptionModel {
 private:
-    std::string current_speech;
-    std::string wrapped_speech;
-    cog::Juror current_speaker;
+    std::vector<std::pair<cog::Juror, std::string>> spoken_so_far;
     std::mutex text_mutex;
-    bool clear_on_speaker_change = false;
-    static const int LINE_WIDTH = 40;
-    static const int SPACE_WIDTH = 1;
+    const static int LINE_LENGTH = 80;
 
-    void wrap_text(const std::string &text) {
-        std::istringstream iss(text);
-        std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},
-                                        std::istream_iterator<std::string>{}};
-        int space_left = LINE_WIDTH;
-        std::vector<std::string> wrapped;
-        for (const auto &token: tokens) {
-            if (wrapped.empty()) {
-                wrapped.push_back(token + " ");
-                continue;
-            }
-            if (token.length() + SPACE_WIDTH > space_left) {
-                wrapped.push_back(token + " ");
-                space_left = LINE_WIDTH - (int) token.length();
-            } else {
-                wrapped.back() += token + " ";
-                space_left -= (int) token.length() + SPACE_WIDTH;
+
+    static std::string wrap(const std::string &text) {
+        std::istringstream words(text);
+        std::vector<std::string> wrapped_lines;
+        std::string word;
+
+        if (words >> word) {
+            wrapped_lines.emplace_back(word);
+            size_t space_left = LINE_LENGTH - word.length();
+            while (words >> word) {
+                if (space_left < word.length() + 1) {
+                    wrapped_lines.emplace_back(word);
+                    space_left = LINE_LENGTH - word.length();
+                } else {
+                    wrapped_lines.back() += ' ' + word;
+                    space_left -= word.length() + 1;
+                }
             }
         }
-        if (wrapped.size() == 1) {
-            wrapped_speech = wrapped.front();
-        } else {
-            wrapped_speech = wrapped.rbegin()[1] + "\n" + wrapped.rbegin()[0];
+        if (wrapped_lines.empty()) {
+            return "";
         }
+        if (wrapped_lines.size() == 1) {
+            return wrapped_lines.back();
+        }
+        return wrapped_lines.at(wrapped_lines.size() - 2) + '\n' + wrapped_lines.at(wrapped_lines.size() - 1);
     }
 
 public:
-    [[maybe_unused]] CaptionModel(bool clear_on_speaker_change) {
-        this->clear_on_speaker_change = clear_on_speaker_change;
-    }
+    explicit CaptionModel() = default;
 
     void add_word(const std::string &new_word, cog::Juror speaker) {
         text_mutex.lock();
-        if (current_speaker != speaker && clear_on_speaker_change) {
-            current_speech.clear();
-            current_speaker = speaker;
+        if (!spoken_so_far.empty() && spoken_so_far.back().first != speaker) {
+            std::cout << "New word's speaker doesn't match text said thus far." << std::endl;
+            spoken_so_far.clear();
         }
-        current_speech += new_word + " ";
-        wrap_text(current_speech);
+        spoken_so_far.emplace_back(speaker, new_word);
         text_mutex.unlock();
     }
 
-    std::tuple<std::string, cog::Juror> get_current_text() {
+    std::pair<cog::Juror, std::string> get_current_text() {
+        std::string current_speech;
+        cog::Juror current_juror = cog::Juror_JuryForeman;
         text_mutex.lock();
-        auto tuple = std::make_tuple(wrapped_speech, current_speaker);
+        if (!spoken_so_far.empty()) {
+            current_juror = spoken_so_far.front().first;
+            for (const auto&[_, word]: spoken_so_far) {
+                current_speech += word + " ";
+            }
+        }
         text_mutex.unlock();
-        return tuple;
+        return std::make_pair(current_juror, wrap(current_speech));
     }
 };
 

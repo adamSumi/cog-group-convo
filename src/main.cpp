@@ -14,8 +14,8 @@
 
 #define PORT 65432
 
-#define WIDTH 640 // How wide do we want the created window to be?
-#define HEIGHT 480 // How tall do we want the created window to be?
+#define WIDTH 1920 // How wide do we want the created window to be?
+#define HEIGHT 1080 // How tall do we want the created window to be?
 
 #define WINDOW_TITLE "Four Angry Men"
 
@@ -48,23 +48,23 @@ static void *lock(void *data, void **p_pixels) {
  */
 static void unlock(void *data, [[maybe_unused]] void *id, [[maybe_unused]] void *const *p_pixels) {
 
-    auto *c = (AppContext *) data;
+    auto *app_context = (AppContext *) data;
 
     // Based on the presentation method selected by the researcher, we want to render captions in different ways.
-    switch (c->presentation_method) {
+    switch (app_context->presentation_method) {
         case NONREGISTERED_GRAPHICS:
             // Non-registered graphics follow the user's head orientation around the screen
-            render_nonregistered_captions(c);
+            render_nonregistered_captions(app_context);
             break;
         case REGISTERED_GRAPHICS:
             // Registered graphics remain stationary in space
         default:
-            std::cout << "Unknown method received: " << c->presentation_method << std::endl;
+            std::cout << "Unknown method received: " << app_context->presentation_method << std::endl;
             break;
     }
-    SDL_RenderPresent(c->renderer);
-    SDL_UnlockTexture(c->texture);
-    SDL_UnlockMutex(c->mutex);
+    SDL_RenderPresent(app_context->renderer);
+    SDL_UnlockTexture(app_context->texture);
+    SDL_UnlockMutex(app_context->mutex);
 }
 
 /**
@@ -75,17 +75,15 @@ static void unlock(void *data, [[maybe_unused]] void *id, [[maybe_unused]] void 
  */
 static void display(void *data, void *id) {
 
-    auto *c = (AppContext *) data;
+    auto *app_context = (AppContext *) data;
 
-    SDL_Rect rect;
-    rect.w = WIDTH;
-    rect.h = HEIGHT;
-    rect.x = 0;
-    rect.y = 0;
-
-    SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
-    SDL_RenderClear(c->renderer);
-    SDL_RenderCopy(c->renderer, c->texture, nullptr, &rect);
+    app_context->display_rect.x = 0;
+    app_context->display_rect.y = 0;
+    app_context->display_rect.w = app_context->window_width;
+    app_context->display_rect.h = app_context->window_height;
+    SDL_SetRenderDrawColor(app_context->renderer, 0, 0, 0, 255);
+    SDL_RenderClear(app_context->renderer);
+    SDL_RenderCopy(app_context->renderer, app_context->texture, nullptr, &app_context->display_rect);
 }
 
 int main(int argc, char *argv[]) {
@@ -113,6 +111,10 @@ int main(int argc, char *argv[]) {
     // important mutexes, buffers, and variables.
     struct AppContext app_context{};
     app_context.presentation_method = presentation_method;
+    app_context.window_width = WIDTH;
+    app_context.window_height = HEIGHT;
+    app_context.y = app_context.window_height * 0.75;
+
 
     // Let's initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -133,15 +135,18 @@ int main(int argc, char *argv[]) {
     app_context.foreground_color = &foreground_color;
     app_context.background_color = &background_color;
 
-    auto window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH,
-                                   HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    auto window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                   app_context.window_width,
+                                   app_context.window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (window == nullptr) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
     }
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "Linear");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     app_context.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     app_context.texture = SDL_CreateTexture(app_context.renderer, SDL_PIXELFORMAT_BGR565, SDL_TEXTUREACCESS_STREAMING,
-                                            WIDTH, HEIGHT);
+                                            app_context.window_width, app_context.window_height);
     if (!app_context.texture) {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
     }
@@ -153,7 +158,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-            "--no-audio", // Don't play audio.
+//            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -171,13 +176,15 @@ int main(int argc, char *argv[]) {
 
     // Let's load the video that we're going to play on VLC
     std::ostringstream os;
-    os << "resources/videos/juror-a." << video_section << ".mp4";
+    os << "resources/videos/main.mp4";
     std::string video_path = os.str();
     m = libvlc_media_new_path(libvlc, video_path.c_str());
     mp = libvlc_media_player_new_from_media(m);
     libvlc_media_release(m);
     libvlc_video_set_callbacks(mp, lock, unlock, display, &app_context);
-    libvlc_video_set_format(mp, "RV16", WIDTH, HEIGHT, WIDTH * 2);
+    libvlc_video_set_format(mp, "RV16", app_context.window_width, app_context.window_height,
+                            app_context.window_width * 2);
+//    libvlc_video_set_format_callbacks(mp, video_format_setup, video_format_cleanup);
 
     std::mutex azimuth_mutex;
     app_context.azimuth_mutex = &azimuth_mutex;
@@ -190,25 +197,24 @@ int main(int argc, char *argv[]) {
     nlohmann::json json;
     os.str("");
     os.clear();
-    os << "resources/captions/merged_captions." << video_section << ".json";
+    os << "resources/captions/captions_main.json";
     std::string captions_path = os.str();
     std::cout << "Captions path = " << captions_path << std::endl;
     std::ifstream captions_file(captions_path.c_str());
     captions_file >> json;
-    auto caption_model = CaptionModel(true);
+    auto caption_model = CaptionModel();
     app_context.caption_model = &caption_model;
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-    }
+//    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+//    }
     libvlc_media_player_play(mp);
     std::thread play_captions_thread(play_captions, &json, &caption_model);
 
     SDL_Event event;
     // Main loop.
     while (!done) {
-
         action = 0;
 
         // Keys: enter (fullscreen), space (pause), escape (quit).
@@ -220,6 +226,15 @@ int main(int argc, char *argv[]) {
                 case SDL_KEYDOWN:
                     action = event.key.keysym.sym;
                     break;
+                case SDL_WINDOWEVENT:
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        SDL_RenderSetViewport(app_context.renderer, nullptr);
+                        app_context.display_rect.w = app_context.window_width = event.window.data1;
+                        app_context.display_rect.h = app_context.window_height = event.window.data2;
+                        app_context.y = app_context.window_height * 0.75;
+
+                    }
+                    break;
             }
         }
 
@@ -227,6 +242,12 @@ int main(int argc, char *argv[]) {
             case SDLK_ESCAPE:
             case SDLK_q:
                 done = 1;
+                break;
+            case SDLK_DOWN:
+                app_context.y += 100;
+                break;
+            case SDLK_UP:
+                app_context.y -= 100;
                 break;
             default:
                 break;

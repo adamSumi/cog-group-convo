@@ -20,5 +20,9 @@ struct AppContext {
     CaptionModel* caption_model;
     int presentation_method;
     int n;
+    int y;
+    SDL_Rect display_rect;
+    int window_width;
+    int window_height;
 };
 #endif //COG_GROUP_CONVO_CPP_APPCONTEXT_HPP

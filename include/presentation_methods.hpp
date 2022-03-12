@@ -14,7 +14,7 @@
 
 void render_nonregistered_captions(AppContext *context) {
     auto left_x = calculate_current_orientation(context->azimuth_mutex, context->azimuth_buffer);
-    auto[text, juror] = context->caption_model->get_current_text();
+    auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
     }
@@ -25,7 +25,7 @@ void render_nonregistered_captions(AppContext *context) {
     destination.w = text_surface->w;
     destination.h = text_surface->h;
     destination.x = left_x;
-    destination.y = 0;
+    destination.y = context->y;
     SDL_FreeSurface(text_surface);
     SDL_SetRenderDrawColor(context->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderCopy(context->renderer, text_texture, nullptr, &destination);
