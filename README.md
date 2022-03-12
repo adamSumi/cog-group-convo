@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-Unfortunately, due to some features being used by this project that are not in package manager repositories, you'll
-have to build from source. But don't worry! It's not too bad.
+Unfortunately, due to some features being used by this project that are not in package manager repositories, you'll have
+to build from source. But don't worry! It's not too bad.
 
 The following instructions were performed on Ubuntu 20.04, but will _probably_ work on Unix-like systems (i.e. MacOS)
 
@@ -45,7 +45,13 @@ make
 sudo make install
 ```
 
-With any luck, you should now have both SDL and SDL_ttf installed, which should take care of the dependency issues for this repo!
+### VLC
+
+With any luck, you should now have both SDL and SDL_ttf installed, which should take care of the dependency issues for
+this repo.
+
+You should now obtain a copy of the 3.22GB video file used to power this experiment. Once obtained, copy it into
+the `resources/videos` folder, under the name `main.mp4`.
 
 ## Development
 
