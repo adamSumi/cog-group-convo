@@ -11,6 +11,7 @@ project(cog_group_convo_cpp)
 find_package(LIBVLC REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2TTF)
+find_package(SDL2_image REQUIRED)
 
 include_directories(include)
 add_executable(${PROJECT_NAME} src/main.cpp)
@@ -21,8 +22,8 @@ add_subdirectory(${FLATBUFFERS_SRC_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/flatbuffers-build
         EXCLUDE_FROM_ALL)
 
-include_directories(${LIBVLC_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL2 nlohmann_json::nlohmann_json ${SDL2TTF_LIBRARY} ${LIBVLC_LIBRARY} flatbuffers)
+include_directories(${LIBVLC_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL2 nlohmann_json::nlohmann_json ${SDL2TTF_LIBRARY} ${LIBVLC_LIBRARY} flatbuffers ${SDL2_IMAGE_LIBRARIES})
 
 
 file(COPY resources DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

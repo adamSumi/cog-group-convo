@@ -11,6 +11,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mutex.h>
+#include <SDL_image.h>
 
 #define PORT 65432
 
@@ -144,6 +145,28 @@ int main(int argc, char *argv[]) {
         exit(2);
     }
 
+    auto flags = IMG_INIT_PNG;
+    int initialized = IMG_Init(flags);
+    if ((initialized & flags) != flags) {
+        printf("IMG_Init: Failed to init required png support!\n");
+        printf("IMG_Init: %s\n", IMG_GetError());
+    }
+
+    std::string back_arrow_path = "resources/images/arrow_back.png";
+    std::string forward_arrow_path = "resources/images/arrow_forward.png";
+    SDL_Surface *back_arrow = IMG_Load(back_arrow_path.c_str());
+    if (!back_arrow) {
+        printf("IMG_Load: %s\n", IMG_GetError());
+        exit(EXIT_FAILURE);
+    }
+    SDL_Surface *forward_arrow = IMG_Load(forward_arrow_path.c_str());
+    if (!forward_arrow) {
+        printf("IMG_Load: %s\n", IMG_GetError());
+        exit(EXIT_FAILURE);
+    }
+    app_context.back_arrow = back_arrow;
+    app_context.forward_arrow = forward_arrow;
+
     TTF_Font *smallest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_SMALL);
     TTF_Font *medium_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_MEDIUM);
     TTF_Font *largest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_LARGE);
@@ -187,7 +210,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-//            "--no-audio", // Don't play audio.
+            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -213,7 +236,6 @@ int main(int argc, char *argv[]) {
     libvlc_video_set_callbacks(mp, lock, unlock, display, &app_context);
     libvlc_video_set_format(mp, "RV16", app_context.window_width, app_context.window_height,
                             app_context.window_width * 2);
-//    libvlc_video_set_format_callbacks(mp, video_format_setup, video_format_cleanup);
 
     std::mutex azimuth_mutex;
     app_context.azimuth_mutex = &azimuth_mutex;
@@ -289,6 +311,7 @@ int main(int argc, char *argv[]) {
     SDL_DestroyMutex(app_context.mutex);
     SDL_DestroyRenderer(app_context.renderer);
     SDL_DestroyWindow(window);
+    IMG_Quit();
     TTF_Quit();
     SDL_Quit();
     return 0;
