@@ -19,8 +19,8 @@
 #define HEIGHT 2160 // How tall do we want the created window to be?
 
 #define FONT_SIZE_SMALL 12
-#define FONT_SIZE_MEDIUM 16
-#define FONT_SIZE_LARGE 18
+#define FONT_SIZE_MEDIUM 20
+#define FONT_SIZE_LARGE 28
 
 #define WINDOW_TITLE "Four Angry Men"
 
@@ -174,8 +174,8 @@ int main(int argc, char *argv[]) {
     app_context.medium_font = medium_font;
     app_context.largest_font = largest_font;
     const std::map<cog::Juror, TTF_Font *> juror_font_sizes{
-            {cog::Juror_JurorA,      smallest_font},
-            {cog::Juror_JurorB,      smallest_font},
+            {cog::Juror_JurorA,      largest_font},
+            {cog::Juror_JurorB,      largest_font},
             {cog::Juror_JuryForeman, largest_font},
             {cog::Juror_JurorC,      largest_font}
     };

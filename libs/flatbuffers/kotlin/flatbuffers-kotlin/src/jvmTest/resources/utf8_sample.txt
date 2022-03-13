@@ -179,7 +179,7 @@ Braille:
 
   (The first couple of paragraphs of "A Christmas Carol" by Dickens)
 
-Compact font selection example text:
+Compact smallest_font selection example text:
 
   ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789
   abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ

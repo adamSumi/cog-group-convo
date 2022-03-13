@@ -11,24 +11,25 @@
 #define DISTANCE_FROM_SCREEN 20
 #define WRAP_LENGTH 0
 
-std::tuple<int, int> render_text(std::string text, const int x, const int y, SDL_Renderer *renderer,
-                                 TTF_Font *font, SDL_Color *foreground_color, SDL_Color *background_color) {
+void render_surface_as_texture(SDL_Renderer *renderer, SDL_Surface *surface, int x, int y, int w, int h) {
+    auto texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_Rect destination{x, y, w, h};
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderCopy(renderer, texture, nullptr, &destination);
+    SDL_DestroyTexture(texture);
+}
+
+std::tuple<int, int> render_text(SDL_Renderer *renderer, TTF_Font *font, std::string text, const int x, const int y,
+                                 SDL_Color *foreground_color, SDL_Color *background_color) {
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *foreground_color,
                                                       *background_color,
                                                       WRAP_LENGTH);
-    auto text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-    SDL_Rect destination;
-    destination.w = text_surface->w;
-    destination.h = text_surface->h;
-    destination.x = x;
-    destination.y = y;
-    auto width = text_surface->w;
-    auto height = text_surface->h;
+    int w = text_surface->w;
+    int h = text_surface->h;
+    render_surface_as_texture(renderer, text_surface, x, y, w, h);
     SDL_FreeSurface(text_surface);
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderCopy(renderer, text_texture, nullptr, &destination);
-    SDL_DestroyTexture(text_texture);
-    return std::make_tuple(width, height);
+    return std::make_tuple(w, h);
 }
 
 
@@ -38,7 +39,7 @@ void render_nonregistered_captions(const AppContext *context) {
     if (text.empty()) {
         return;
     }
-    render_text(text, left_x, context->y, context->renderer, context->smallest_font, context->foreground_color,
+    render_text(context->renderer, context->largest_font, text, left_x, context->y, context->foreground_color,
                 context->background_color);
 }
 
@@ -48,39 +49,25 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
     if (text.empty()) {
         return;
     }
-    const auto[text_width, text_height] = render_text(text, left_x, context->y, context->renderer,
-                                                      context->smallest_font,
+    const auto[text_width, text_height] = render_text(context->renderer,
+                                                      context->largest_font, text, left_x, context->y,
                                                       context->foreground_color, context->background_color);
     bool should_show_back_arrow = false;
     bool should_show_forward_arrow = true;
 
-
+    if (!(should_show_forward_arrow || should_show_back_arrow)) {
+        return;
+    }
+    int x = 0;
+    SDL_Surface *arrow_surface = nullptr;
     if (should_show_back_arrow) {
-        SDL_Surface *arrow_surface = context->back_arrow;;
-        auto arrow_texture = SDL_CreateTextureFromSurface(context->renderer, arrow_surface);
-        SDL_Rect destination;
-        destination.w = arrow_surface->w;
-        destination.h = arrow_surface->h;
-        destination.x = left_x - arrow_surface->w;
-        destination.y = context->y;
-
-        SDL_SetRenderDrawColor(context->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderCopy(context->renderer, arrow_texture, nullptr, &destination);
-        SDL_DestroyTexture(arrow_texture);
+        arrow_surface = context->back_arrow;
+        x = left_x - arrow_surface->w;
+    } else if (should_show_forward_arrow) {
+        arrow_surface = context->forward_arrow;
+        x = left_x + text_width;
     }
-    if (should_show_forward_arrow) {
-        SDL_Surface *arrow_surface = context->forward_arrow;
-        auto arrow_texture = SDL_CreateTextureFromSurface(context->renderer, arrow_surface);
-        SDL_Rect destination;
-        destination.w = arrow_surface->w;
-        destination.h = arrow_surface->h;
-        destination.x = left_x + text_width;
-        destination.y = context->y;
-
-        SDL_SetRenderDrawColor(context->renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderCopy(context->renderer, arrow_texture, nullptr, &destination);
-        SDL_DestroyTexture(arrow_texture);
-    }
+    render_surface_as_texture(context->renderer, arrow_surface, x, context->y, arrow_surface->w, arrow_surface->h);
 }
 
 void render_registered_captions(const AppContext *context) {
@@ -92,7 +79,7 @@ void render_registered_captions(const AppContext *context) {
     int left_x = left_x_percent * context->display_rect.w;
     int left_y = left_y_percent * context->display_rect.h;
     auto font = context->juror_font_sizes->at(juror);
-    render_text(text, left_x, left_y, context->renderer, font, context->foreground_color,
+    render_text(context->renderer, font, text, left_x, left_y, context->foreground_color,
                 context->background_color);
 }
 
