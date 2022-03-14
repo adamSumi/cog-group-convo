@@ -121,10 +121,10 @@ int main(int argc, char *argv[]) {
     // Let's start building our application context. This is basically a struct that stores pointers to
     // important mutexes, buffers, and variables.
     const std::map<cog::Juror, std::pair<double, double>> juror_positions{
-            {cog::Juror_JurorA,      {838.f / 1920.f, 431.f / 1080.f}},
-            {cog::Juror_JurorB,      {512.f / 1920.f, 452.f / 1080.f}},
-            {cog::Juror_JurorC,      {197.f / 1920.f, 528.f / 1080.f}},
-            {cog::Juror_JuryForeman, {963.f / 1920.f, 532.f / 1080.f}}
+            {cog::Juror_JurorA,      {1050.f / 1920.f, 550.f / 1080.f}},
+            {cog::Juror_JurorB,      {675.f / 1920.f, 550.f / 1080.f}},
+            {cog::Juror_JurorC,      {197.f / 1920.f, 650.f / 1080.f}},
+            {cog::Juror_JuryForeman, {1250.f / 1920.f, 600.f / 1080.f}}
     };
     struct AppContext app_context{};
     app_context.presentation_method = presentation_method;
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-//            "--no-audio", // Don't play audio.
+            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);

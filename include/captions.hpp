@@ -17,7 +17,7 @@ class CaptionModel {
 private:
     std::vector<std::pair<cog::Juror, std::string>> spoken_so_far;
     std::mutex text_mutex;
-    const static int LINE_LENGTH = 80;
+    const static int LINE_LENGTH = 30;
 
 
     static std::string wrap(const std::string &text, const int line_length) {
@@ -53,7 +53,6 @@ public:
     void add_word(const std::string &new_word, cog::Juror speaker) {
         text_mutex.lock();
         if (!spoken_so_far.empty() && spoken_so_far.back().first != speaker) {
-            std::cout << "New word's speaker doesn't match text said thus far." << std::endl;
             spoken_so_far.clear();
         }
         spoken_so_far.emplace_back(speaker, new_word);
