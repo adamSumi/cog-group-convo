@@ -174,10 +174,10 @@ int main(int argc, char *argv[]) {
     app_context.medium_font = medium_font;
     app_context.largest_font = largest_font;
     const std::map<cog::Juror, TTF_Font *> juror_font_sizes{
-            {cog::Juror_JurorA,      largest_font},
-            {cog::Juror_JurorB,      largest_font},
-            {cog::Juror_JuryForeman, largest_font},
-            {cog::Juror_JurorC,      largest_font}
+            {cog::Juror_JurorA,      smallest_font},
+            {cog::Juror_JurorB,      smallest_font},
+            {cog::Juror_JuryForeman, medium_font},
+            {cog::Juror_JurorC,      medium_font}
     };
     app_context.juror_font_sizes = &juror_font_sizes;
 
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-            "--no-audio", // Don't play audio.
+//            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
 
     // Let's load the video that we're going to play on VLC
     std::ostringstream os;
-    os << "resources/videos/main.mp4";
+    os << "resources/videos/main." << video_section << ".mp4";
     std::string video_path = os.str();
     m = libvlc_media_new_path(libvlc, video_path.c_str());
     mp = libvlc_media_player_new_from_media(m);
@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
     nlohmann::json json;
     os.str("");
     os.clear();
-    os << "resources/captions/captions_main.json";
+    os << "resources/captions/merged_captions." << video_section << ".json";
     std::string captions_path = os.str();
     std::cout << "Captions path = " << captions_path << std::endl;
     std::ifstream captions_file(captions_path.c_str());
@@ -263,11 +263,11 @@ int main(int argc, char *argv[]) {
     libvlc_media_player_play(mp);
     std::thread play_captions_thread(play_captions, &json, &caption_model);
     SDL_Event event;
-    int x, y;
+//    int x, y;
     // Main loop.
     while (!done) {
-        SDL_GetMouseState(&x, &y);
-        SDL_Log("Mouse cursor is at %d, %d", x, y);
+//        SDL_GetMouseState(&x, &y);
+//        SDL_Log("Mouse cursor is at %d, %d", x, y);
         action = 0;
 
         // Keys: enter (fullscreen), space (pause), escape (quit).
