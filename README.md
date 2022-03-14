@@ -15,8 +15,7 @@ not, you can get it [from their website](https://ffmpeg.org/).
 ### Building dependencies from source
 
 Unfortunately, due to some features being used by this project that are not in package manager repositories, you'll have
-to build some dependencies from source code. But don't worry!
-It's not too bad.
+to build some dependencies from source code.
 
 The following instructions were performed on Ubuntu 20.04, but will _probably_ work on Unix-like systems (i.e. MacOS)
 
