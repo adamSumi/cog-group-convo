@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-            "--no-audio", // Don't play audio.
+//            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -258,8 +258,8 @@ int main(int argc, char *argv[]) {
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-    }
+//    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+//    }
     libvlc_media_player_play(mp);
     std::thread play_captions_thread(play_captions, &json, &caption_model);
     SDL_Event event;

@@ -39,7 +39,7 @@ void render_nonregistered_captions(const AppContext *context) {
     if (text.empty()) {
         return;
     }
-    render_text(context->renderer, context->largest_font, text, left_x, context->y, context->foreground_color,
+    render_text(context->renderer, context->medium_font, text, left_x, context->y, context->foreground_color,
                 context->background_color);
 }
 
@@ -50,7 +50,7 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
         return;
     }
     const auto[text_width, text_height] = render_text(context->renderer,
-                                                      context->largest_font, text, left_x, context->y,
+                                                      context->medium_font, text, left_x, context->y,
                                                       context->foreground_color, context->background_color);
     bool should_show_back_arrow = false;
     bool should_show_forward_arrow = true;
