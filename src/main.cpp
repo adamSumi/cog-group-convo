@@ -181,8 +181,8 @@ int main(int argc, char *argv[]) {
     app_context.medium_font = medium_font;
     app_context.largest_font = largest_font;
     const std::map<cog::Juror, TTF_Font *> juror_font_sizes{
-            {cog::Juror_JurorA,      smallest_font},
-            {cog::Juror_JurorB,      smallest_font},
+            {cog::Juror_JurorA,      medium_font},
+            {cog::Juror_JurorB,      medium_font},
             {cog::Juror_JuryForeman, medium_font},
             {cog::Juror_JurorC,      medium_font}
     };
