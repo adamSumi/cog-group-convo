@@ -120,10 +120,12 @@ int main(int argc, char *argv[]) {
 
     // Let's start building our application context. This is basically a struct that stores pointers to
     // important mutexes, buffers, and variables.
+
+    // Hard-coded positions of where captions should be rendered on the video.
     const std::map<cog::Juror, std::pair<double, double>> juror_positions{
             {cog::Juror_JurorA,      {1050.f / 1920.f, 550.f / 1080.f}},
-            {cog::Juror_JurorB,      {675.f / 1920.f, 550.f / 1080.f}},
-            {cog::Juror_JurorC,      {197.f / 1920.f, 650.f / 1080.f}},
+            {cog::Juror_JurorB,      {675.f / 1920.f,  550.f / 1080.f}},
+            {cog::Juror_JurorC,      {197.f / 1920.f,  650.f / 1080.f}},
             {cog::Juror_JuryForeman, {1250.f / 1920.f, 600.f / 1080.f}}
     };
     struct AppContext app_context{};
@@ -131,61 +133,16 @@ int main(int argc, char *argv[]) {
     app_context.juror_positions = &juror_positions;
     app_context.window_width = WIDTH;
     app_context.window_height = HEIGHT;
+    // For non-registered captions, render them at 75% of the window's height.
     app_context.y = app_context.window_height * 0.75;
 
-
-    // Let's initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    // And initialize SDL_ttf, which will render text on our video frames.
-    if (TTF_Init() == -1) {
-        printf("[ERROR] TTF_Init() Failed with: %s\n", TTF_GetError());
-        exit(2);
-    }
-
-    auto flags = IMG_INIT_PNG;
-    int initialized = IMG_Init(flags);
-    if ((initialized & flags) != flags) {
-        printf("IMG_Init: Failed to init required png support!\n");
-        printf("IMG_Init: %s\n", IMG_GetError());
-    }
-
-    std::string back_arrow_path = "resources/images/arrow_back.png";
-    std::string forward_arrow_path = "resources/images/arrow_forward.png";
-    SDL_Surface *back_arrow = IMG_Load(back_arrow_path.c_str());
-    if (!back_arrow) {
-        printf("IMG_Load: %s\n", IMG_GetError());
-        exit(EXIT_FAILURE);
-    }
-    SDL_Surface *forward_arrow = IMG_Load(forward_arrow_path.c_str());
-    if (!forward_arrow) {
-        printf("IMG_Load: %s\n", IMG_GetError());
-        exit(EXIT_FAILURE);
-    }
-    app_context.back_arrow = back_arrow;
-    app_context.forward_arrow = forward_arrow;
-
-    TTF_Font *smallest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_SMALL);
-    TTF_Font *medium_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_MEDIUM);
-    TTF_Font *largest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_LARGE);
-    app_context.smallest_font = smallest_font;
-    app_context.medium_font = medium_font;
-    app_context.largest_font = largest_font;
-    const std::map<cog::Juror, TTF_Font *> juror_font_sizes{
-            {cog::Juror_JurorA,      smallest_font},
-            {cog::Juror_JurorB,      smallest_font},
-            {cog::Juror_JuryForeman, medium_font},
-            {cog::Juror_JurorC,      medium_font}
-    };
-    app_context.juror_font_sizes = &juror_font_sizes;
-
+    // Let's load the foreground and background colors.
     SDL_Color foreground_color = {fg.at(0), fg.at(1), fg.at(2), fg.at(3)};
     SDL_Color background_color = {bg.at(0), bg.at(1), bg.at(2), bg.at(3)};
     app_context.foreground_color = &foreground_color;
     app_context.background_color = &background_color;
 
+    // Create the window that we'll use
     auto window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                    app_context.window_width,
                                    app_context.window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
@@ -204,6 +161,56 @@ int main(int argc, char *argv[]) {
     }
     app_context.mutex = SDL_CreateMutex();
 
+
+
+    // Let's initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    // And initialize SDL_ttf, which will render text on our video frames.
+    if (TTF_Init() == -1) {
+        printf("[ERROR] TTF_Init() Failed with: %s\n", TTF_GetError());
+        exit(2);
+    }
+
+    TTF_Font *smallest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_SMALL);
+    TTF_Font *medium_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_MEDIUM);
+    TTF_Font *largest_font = TTF_OpenFont(path_to_font.c_str(), FONT_SIZE_LARGE);
+    app_context.smallest_font = smallest_font;
+    app_context.medium_font = medium_font;
+    app_context.largest_font = largest_font;
+    const std::map<cog::Juror, TTF_Font *> juror_font_sizes{
+            {cog::Juror_JurorA,      smallest_font},
+            {cog::Juror_JurorB,      smallest_font},
+            {cog::Juror_JuryForeman, medium_font},
+            {cog::Juror_JurorC,      medium_font}
+    };
+    app_context.juror_font_sizes = &juror_font_sizes;
+
+
+    // Lastly, let's initialize SDL_image, which will load images for us.
+    auto flags = IMG_INIT_PNG;
+    if ((IMG_Init(flags) & flags) != flags) {
+        printf("IMG_Init: Failed to init required png support!\n");
+        printf("IMG_Init: %s\n", IMG_GetError());
+    }
+
+    // Load the two indicator images that we'll use to point towards the next speaker.
+    std::string back_arrow_path = "resources/images/arrow_back.png";
+    std::string forward_arrow_path = "resources/images/arrow_forward.png";
+    SDL_Surface *back_arrow = IMG_Load(back_arrow_path.c_str());
+    if (!back_arrow) {
+        printf("IMG_Load: %s\n", IMG_GetError());
+        exit(EXIT_FAILURE);
+    }
+    SDL_Surface *forward_arrow = IMG_Load(forward_arrow_path.c_str());
+    if (!forward_arrow) {
+        printf("IMG_Load: %s\n", IMG_GetError());
+        exit(EXIT_FAILURE);
+    }
+    app_context.back_arrow = back_arrow;
+    app_context.forward_arrow = forward_arrow;
 
     // Now that we've configured our app context, let's get ready to boot up VLC.
     libvlc_instance_t *libvlc;
