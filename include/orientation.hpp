@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include "cog-flatbuffer-definitions/orientation_message_generated.h"
 #include "cog-flatbuffer-definitions/caption_message_generated.h"
+#include "AppContext.hpp"
 
 #define MOVING_AVG_SIZE 3000
 #define DISTANCE_FROM_SCREEN 20
@@ -41,25 +42,28 @@ void read_orientation(int socket, sockaddr_in client_address, std::mutex *socket
     }
 }
 
-double calculate_caption_location(std::mutex *azimuth_mutex, std::deque<float> *azimuth_buffer) {
-    azimuth_mutex->lock();
-    if (azimuth_buffer->empty()) {
-        azimuth_mutex->unlock();
+double calculate_caption_location(const AppContext *app_context) {
+    app_context->azimuth_mutex->lock();
+    if (app_context->azimuth_buffer->empty()) {
+        app_context->azimuth_mutex->unlock();
         return 0;
     }
     double average_azimuth =
-            std::accumulate(azimuth_buffer->begin(), azimuth_buffer->end(), 0.0) / azimuth_buffer->size();
+            std::accumulate(app_context->azimuth_buffer->begin(), app_context->azimuth_buffer->end(), 0.0) /
+            app_context->azimuth_buffer->size();
     auto angle = average_azimuth;
-    azimuth_mutex->unlock();
+    app_context->azimuth_mutex->unlock();
 
     // TODO: Figure out how to map cosine to screen width properly.
     return std::cos(angle + 2 * DISTANCE_FROM_SCREEN) * 100;
 }
 
-cog::Juror calculate_juror_from_orientation(std::mutex *azimuth_mutex, std::deque<float> *orientation_buffer) {
-    auto location = calculate_caption_location(azimuth_mutex, orientation_buffer);
-    if (location)
+cog::Juror calculate_juror_from_orientation(const AppContext *app_context) {
+    auto location = calculate_caption_location(app_context);
+    if (location) {
         return cog::Juror_JurorA;
+    }
+    return cog::Juror_JurorA;
 }
 
 #endif //COG_GROUP_CONVO_CPP_ORIENTATION_HPP

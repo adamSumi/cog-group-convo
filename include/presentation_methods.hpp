@@ -41,8 +41,9 @@ void render_surface_as_texture(SDL_Renderer *renderer, SDL_Surface *surface, int
  * @param background_color The color of the background
  * @return
  */
-std::tuple<int, int> render_text(SDL_Renderer *renderer, TTF_Font *font, const std::string& text, const int x, const int y,
-                                 SDL_Color *foreground_color, SDL_Color *background_color) {
+std::tuple<int, int>
+render_text(SDL_Renderer *renderer, TTF_Font *font, const std::string &text, const int x, const int y,
+            SDL_Color *foreground_color, SDL_Color *background_color) {
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *foreground_color,
                                                       *background_color,
                                                       WRAP_LENGTH);
@@ -55,7 +56,7 @@ std::tuple<int, int> render_text(SDL_Renderer *renderer, TTF_Font *font, const s
 
 
 void render_nonregistered_captions(const AppContext *context) {
-    auto left_x = calculate_caption_location(context->azimuth_mutex, context->azimuth_buffer);
+    auto left_x = calculate_caption_location(context);
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
@@ -69,7 +70,7 @@ void render_nonregistered_captions(const AppContext *context) {
  * @param context
  */
 void render_nonregistered_captions_with_indicators(const AppContext *context) {
-    auto left_x = calculate_caption_location(context->azimuth_mutex, context->azimuth_buffer);
+    auto left_x = calculate_caption_location(context);
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;

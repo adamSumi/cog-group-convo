@@ -7,6 +7,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mutex.h>
+#include <map>
+#include "captions.hpp"
 
 struct AppContext {
     SDL_Renderer *renderer;
@@ -19,8 +21,8 @@ struct AppContext {
     TTF_Font *largest_font;
     const std::map<cog::Juror, std::pair<double, double>> *juror_positions;
     const std::map<cog::Juror, TTF_Font *> *juror_font_sizes;
-    SDL_Surface* back_arrow;
-    SDL_Surface* forward_arrow;
+    SDL_Surface *back_arrow;
+    SDL_Surface *forward_arrow;
     SDL_Color *foreground_color;
     SDL_Color *background_color;
     CaptionModel *caption_model;
