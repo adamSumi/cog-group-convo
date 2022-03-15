@@ -6,7 +6,7 @@
 #include <tuple>
 #include <cstring>
 #include <getopt.h>
-#include "cog-flatbuffer-definitions/caption_message_generated.h"
+#include <array>
 
 /**
  * Prints a QR code to the console. The QR code's contents are formatted as follows:
@@ -90,7 +90,7 @@ static struct option long_options[] = {
         {"font_size",           required_argument, nullptr, 's'}
 };
 
-std::tuple<int, int , RGBA, RGBA, std::string, int>
+std::tuple<int, int, RGBA, RGBA, std::string, int>
 parse_arguments(int argc, char *argv[]) {
     int video_section;
     int presentation_method;

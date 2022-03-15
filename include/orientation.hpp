@@ -7,12 +7,34 @@
 #include <numeric>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <iostream>
 #include "cog-flatbuffer-definitions/orientation_message_generated.h"
 #include "cog-flatbuffer-definitions/caption_message_generated.h"
 #include "AppContext.hpp"
+#include <cmath>
 
-#define MOVING_AVG_SIZE 3000
-#define DISTANCE_FROM_SCREEN 20
+const static int INCHES_FROM_SCREEN = 14 * 12; // 14 feet -> inches
+const static int SCREEN_PIXEL_WIDTH = 3840;
+const static int SCREEN_PIXEL_HEIGHT = 2160;
+const static double PIXELS_PER_INCH = 100.f / 5.75f; // 100 pixels / 5.75 in (calculated empirically, see "ppi" branch)
+const static double SCREEN_INCH_WIDTH = (double) SCREEN_PIXEL_WIDTH / PIXELS_PER_INCH;
+const static size_t MOVING_AVG_SIZE = 3000;
+
+double pi() { return std::atan(1) * 4; }
+
+int to_pixels(double inches) {
+    return inches * PIXELS_PER_INCH;
+}
+
+double angle_to_pixel(double angle) {
+    angle -= pi();
+    const auto offset_from_zero = std::atan(angle) * INCHES_FROM_SCREEN;
+    const auto adjusted = offset_from_zero + (SCREEN_INCH_WIDTH / 2);
+    if (adjusted < 0 || adjusted > SCREEN_INCH_WIDTH) {
+        return -3000;
+    }
+    return to_pixels(adjusted);
+}
 
 
 void read_orientation(int socket, sockaddr_in client_address, std::mutex *socket_mutex, std::mutex *azimuth_mutex,
@@ -53,17 +75,7 @@ double calculate_caption_location(const AppContext *app_context) {
             app_context->azimuth_buffer->size();
     auto angle = average_azimuth;
     app_context->azimuth_mutex->unlock();
-
-    // TODO: Figure out how to map cosine to screen width properly.
-    return std::cos(angle + 2 * DISTANCE_FROM_SCREEN) * 100;
-}
-
-cog::Juror calculate_juror_from_orientation(const AppContext *app_context) {
-    auto location = calculate_caption_location(app_context);
-    if (location) {
-        return cog::Juror_JurorA;
-    }
-    return cog::Juror_JurorA;
+    return angle_to_pixel(angle);
 }
 
 #endif //COG_GROUP_CONVO_CPP_ORIENTATION_HPP

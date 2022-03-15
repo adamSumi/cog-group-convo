@@ -7,7 +7,6 @@
 
 #include <string>
 #include <mutex>
-#include "cog-flatbuffer-definitions/caption_message_generated.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <chrono>

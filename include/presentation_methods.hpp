@@ -8,7 +8,6 @@
 #include "captions.hpp"
 #include "AppContext.hpp"
 
-#define DISTANCE_FROM_SCREEN 20
 #define WRAP_LENGTH 0
 
 /**

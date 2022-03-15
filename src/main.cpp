@@ -15,11 +15,9 @@
 
 #define PORT 65432
 
-#define WIDTH 3840 // How wide do we want the created window to be?
-#define HEIGHT 2160 // How tall do we want the created window to be?
 
-#define FONT_SIZE_SMALL 12
-#define FONT_SIZE_MEDIUM 20
+#define FONT_SIZE_SMALL 26
+#define FONT_SIZE_MEDIUM 26
 #define FONT_SIZE_LARGE 28
 
 #define WINDOW_TITLE "Four Angry Men"
@@ -131,8 +129,8 @@ int main(int argc, char *argv[]) {
     struct AppContext app_context{};
     app_context.presentation_method = presentation_method;
     app_context.juror_positions = &juror_positions;
-    app_context.window_width = WIDTH;
-    app_context.window_height = HEIGHT;
+    app_context.window_width = SCREEN_PIXEL_WIDTH;
+    app_context.window_height = SCREEN_PIXEL_HEIGHT;
     // For non-registered captions, render them at 75% of the window's height.
     app_context.y = app_context.window_height * 0.75;
 
@@ -265,8 +263,8 @@ int main(int argc, char *argv[]) {
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-//    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-//    }
+    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+    }
     libvlc_media_player_play(mp);
     std::thread play_captions_thread(play_captions, &json, &caption_model);
     SDL_Event event;
