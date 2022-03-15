@@ -2,10 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cog-flatbuffer-definitions" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/include/cog-flatbuffer-definitions" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/libs/SDL2/src/SDL2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/libs/SDL2_ttf/src/SDL_ttf" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/libs/flatbuffers" vcs="Git" />
   </component>
 </project>

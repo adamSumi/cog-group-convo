@@ -13,6 +13,7 @@
 #define MOVING_AVG_SIZE 3000
 #define DISTANCE_FROM_SCREEN 20
 
+
 void read_orientation(int socket, sockaddr_in client_address, std::mutex *socket_mutex, std::mutex *azimuth_mutex,
                       std::deque<float> *orientation_buffer) {
     size_t len, num_bytes_read;
@@ -40,7 +41,7 @@ void read_orientation(int socket, sockaddr_in client_address, std::mutex *socket
     }
 }
 
-double calculate_current_orientation(std::mutex *azimuth_mutex, std::deque<float> *azimuth_buffer) {
+double calculate_caption_location(std::mutex *azimuth_mutex, std::deque<float> *azimuth_buffer) {
     azimuth_mutex->lock();
     if (azimuth_buffer->empty()) {
         azimuth_mutex->unlock();
@@ -56,8 +57,9 @@ double calculate_current_orientation(std::mutex *azimuth_mutex, std::deque<float
 }
 
 cog::Juror calculate_juror_from_orientation(std::mutex *azimuth_mutex, std::deque<float> *orientation_buffer) {
-    auto current_orientation = calculate_current_orientation(azimuth_mutex, orientation_buffer);
-    return cog::Juror_JurorA;
+    auto location = calculate_caption_location(azimuth_mutex, orientation_buffer);
+    if (location)
+        return cog::Juror_JurorA;
 }
 
 #endif //COG_GROUP_CONVO_CPP_ORIENTATION_HPP

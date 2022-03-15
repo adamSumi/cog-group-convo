@@ -11,6 +11,15 @@
 #define DISTANCE_FROM_SCREEN 20
 #define WRAP_LENGTH 0
 
+/**
+ * Renders the provided surface as a texture on the given renderer, using the position, width, and height provided.
+ * @param renderer A pointer to an SDL_Renderer, which the surface will be rendered on
+ * @param surface A pointer to the surface to be rendered
+ * @param x The x location at which this surface will be rendered
+ * @param y The y location at which this surface will be rendered
+ * @param w The width of the surface
+ * @param h The height of the surface
+ */
 void render_surface_as_texture(SDL_Renderer *renderer, SDL_Surface *surface, int x, int y, int w, int h) {
     auto texture = SDL_CreateTextureFromSurface(renderer, surface);
 
@@ -20,7 +29,19 @@ void render_surface_as_texture(SDL_Renderer *renderer, SDL_Surface *surface, int
     SDL_DestroyTexture(texture);
 }
 
-std::tuple<int, int> render_text(SDL_Renderer *renderer, TTF_Font *font, std::string text, const int x, const int y,
+/**
+ * Renders the given text on the renderer using the position, colors, and font provided.
+ * Returns the width and height of the texture rendered.
+ * @param renderer A pointer to an SDL_Renderer, to which the text will be rendered
+ * @param font A pointer to a TTF_Font, which will be used to display the text.
+ * @param text The actual string to be displayed
+ * @param x The x location at which to display the string
+ * @param y The y location at which to display the string
+ * @param foreground_color The color of the text
+ * @param background_color The color of the background
+ * @return
+ */
+std::tuple<int, int> render_text(SDL_Renderer *renderer, TTF_Font *font, const std::string& text, const int x, const int y,
                                  SDL_Color *foreground_color, SDL_Color *background_color) {
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *foreground_color,
                                                       *background_color,
@@ -34,7 +55,7 @@ std::tuple<int, int> render_text(SDL_Renderer *renderer, TTF_Font *font, std::st
 
 
 void render_nonregistered_captions(const AppContext *context) {
-    auto left_x = calculate_current_orientation(context->azimuth_mutex, context->azimuth_buffer);
+    auto left_x = calculate_caption_location(context->azimuth_mutex, context->azimuth_buffer);
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
@@ -43,8 +64,12 @@ void render_nonregistered_captions(const AppContext *context) {
                 context->background_color);
 }
 
+/**
+ * Renders non-registered captions (captions that remain at a fixed location in the user's field-of-view) using the given app context.
+ * @param context
+ */
 void render_nonregistered_captions_with_indicators(const AppContext *context) {
-    auto left_x = calculate_current_orientation(context->azimuth_mutex, context->azimuth_buffer);
+    auto left_x = calculate_caption_location(context->azimuth_mutex, context->azimuth_buffer);
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
@@ -70,6 +95,11 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
     render_surface_as_texture(context->renderer, arrow_surface, x, context->y, arrow_surface->w, arrow_surface->h);
 }
 
+/**
+ * Renders registered captions (which remain fixed in space, pinned to the body of the person speaking)
+ * using the given app context.
+ * @param context
+ */
 void render_registered_captions(const AppContext *context) {
     const auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
