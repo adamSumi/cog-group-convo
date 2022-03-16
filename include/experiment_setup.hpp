@@ -8,6 +8,7 @@
 #include <tuple>
 #include <netinet/in.h>
 #include <getopt.h>
+#include <SDL2/SDL.h>
 
 /**
  * Prints a QR code to the console. The QR code's contents are formatted as follows:
@@ -18,9 +19,8 @@ void print_connection_qr(int presentation_method, int port);
 
 std::tuple<int, sockaddr_in> connect_to_client(int port);
 
-using RGBA = std::array<uint8_t, 4>;
 
-RGBA color_string_to_rgba(const std::string &color_str);
+SDL_Color color_string_to_color(const std::string &color_str);
 
 static struct option long_options[] = {
         {"video_section",       required_argument, nullptr, 'v'},
@@ -31,7 +31,7 @@ static struct option long_options[] = {
         {"font_size",           required_argument, nullptr, 's'}
 };
 
-std::tuple<int, int, RGBA, RGBA, std::string, int>
+std::tuple<int, int, SDL_Color, SDL_Color, std::string, int>
 parse_arguments(int argc, char *argv[]);
 
 #endif //COG_GROUP_CONVO_CPP_EXPERIMENT_SETUP_HPP

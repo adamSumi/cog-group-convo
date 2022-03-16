@@ -66,25 +66,27 @@ std::tuple<int, sockaddr_in> connect_to_client(int port) {
     return std::make_tuple(sockfd, cliaddr);
 }
 
-using RGBA = std::array<uint8_t, 4>;
-
-RGBA color_string_to_rgba(const std::string &color_str) {
-    RGBA result{0, 0, 0, 0};
+SDL_Color color_string_to_color(const std::string &color_str) {
+    SDL_Color result{0, 0, 0, 0};
     std::stringstream s_stream(color_str); //create string stream from the string
-    for (auto &elem: result) {
-        std::string substr;
-        getline(s_stream, substr, ','); //get first string delimited by comma
-        elem = std::stoi(substr);
-    }
+    std::string substr;
+    getline(s_stream, substr, ','); //get first string delimited by comma
+    result.r = std::stoi(substr);
+    getline(s_stream, substr, ','); //get first string delimited by comma
+    result.g = std::stoi(substr);
+    getline(s_stream, substr, ','); //get first string delimited by comma
+    result.b = std::stoi(substr);
+    getline(s_stream, substr, ','); //get first string delimited by comma
+    result.a = std::stoi(substr);
     return result;
 }
 
-std::tuple<int, int, RGBA, RGBA, std::string, int>
+std::tuple<int, int, SDL_Color, SDL_Color, std::string, int>
 parse_arguments(int argc, char *argv[]) {
     int video_section;
     int presentation_method;
-    RGBA foreground_color{0, 0, 0, 0};
-    RGBA background_color{0, 0, 0, 0};
+    SDL_Color foreground_color{0, 0, 0, 0};
+    SDL_Color background_color{0, 0, 0, 0};
     std::string path_to_font;
     int font_size;
     int cmd_opt;
@@ -109,11 +111,11 @@ parse_arguments(int argc, char *argv[]) {
                 break;
             case 'f':
                 fg_color_str = std::string(optarg);
-                foreground_color = color_string_to_rgba(fg_color_str);
+                foreground_color = color_string_to_color(fg_color_str);
                 break;
             case 'b':
                 bg_color_str = std::string(optarg);
-                background_color = color_string_to_rgba(bg_color_str);
+                background_color = color_string_to_color(bg_color_str);
                 break;
             case 'p':
                 path_to_font = std::string(optarg);

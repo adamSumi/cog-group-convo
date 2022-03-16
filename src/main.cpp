@@ -102,8 +102,8 @@ int main(int argc, char *argv[]) {
     [
     video_section, // Which video section will we be rendering?
     presentation_method, // How will we be presenting captions?
-    fg, // What color will the text be? RGBA format
-    bg, // What color will the background behind the text be? RGBA format
+    foreground_color, // What color will the text be? RGBA format
+    background_color, // What color will the background behind the text be? RGBA format
     path_to_font, // Where's the smallest_font located?
     font_size // How big will the smallest_font be?
     ] = parse_arguments(argc, argv);
@@ -136,8 +136,6 @@ int main(int argc, char *argv[]) {
     app_context.y = app_context.window_height * 0.75;
 
     // Let's load the foreground and background colors.
-    SDL_Color foreground_color = {fg.at(0), fg.at(1), fg.at(2), fg.at(3)};
-    SDL_Color background_color = {bg.at(0), bg.at(1), bg.at(2), bg.at(3)};
     app_context.foreground_color = &foreground_color;
     app_context.background_color = &background_color;
 

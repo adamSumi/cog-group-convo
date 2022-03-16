@@ -24,8 +24,8 @@ struct AppContext {
     const std::map<cog::Juror, TTF_Font *> *juror_font_sizes;
     SDL_Surface *back_arrow;
     SDL_Surface *forward_arrow;
-    SDL_Color *foreground_color;
-    SDL_Color *background_color;
+    const SDL_Color *foreground_color;
+    const SDL_Color *background_color;
     CaptionModel *caption_model;
     int presentation_method;
     int n;
