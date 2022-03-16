@@ -157,9 +157,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
     }
     app_context.mutex = SDL_CreateMutex();
-
-
-
+    
     // Let's initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
@@ -218,7 +216,6 @@ int main(int argc, char *argv[]) {
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
-    int done = 0, action, pause = 0;
     // If you don't have this variable set you must have plugins directory
     // with the executable or libvlc_new() will not work!
     printf("VLC_PLUGIN_PATH=%s\n", getenv("VLC_PLUGIN_PATH"));
@@ -267,6 +264,8 @@ int main(int argc, char *argv[]) {
     libvlc_media_player_play(mp);
     std::thread play_captions_thread(play_captions, &json, &caption_model);
     SDL_Event event;
+    bool done = false;
+    int action = 0;
     // Main loop.
     while (!done) {
         action = 0;
@@ -294,7 +293,7 @@ int main(int argc, char *argv[]) {
         switch (action) {
             case SDLK_ESCAPE:
             case SDLK_q:
-                done = 1;
+                done = true;
                 break;
             case SDLK_DOWN:
                 app_context.y += 100;
