@@ -4,6 +4,7 @@
 #include "presentation_methods.hpp"
 #include "nlohmann/json.hpp"
 #include "captions.hpp"
+#include "orientation.hpp"
 #include <thread>
 #include <fstream>
 #include <cstdlib>

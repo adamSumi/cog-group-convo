@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mutex.h>
 #include <map>
+#include <SDL2/SDL_ttf.h>
 #include "captions.hpp"
 
 struct AppContext {

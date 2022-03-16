@@ -14,7 +14,7 @@ find_package(SDL2TTF)
 find_package(SDL2_image REQUIRED)
 
 include_directories(include)
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/captions.cpp src/experiment_setup.cpp src/orientation.cpp src/presentation_methods.cpp include/experiment_setup.hpp)
 
 # Add FlatBuffers directly to our build. This defines the `flatbuffers` target.
 set(FLATBUFFERS_SRC_DIR libs/flatbuffers)
