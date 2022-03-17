@@ -28,6 +28,11 @@
 #define NONREGISTERED_GRAPHICS_WITH_ARROWS 3
 #define CONTROL 4
 
+// BOUNDS = {-1111, -2160, 3840, 2160}
+// Good position = {-1054, -1816}
+#define WINDOW_OFFSET_X 57 // ASSUMING 3840x2160 DISPLAY
+#define WINDOW_OFFSET_Y 415
+
 
 /**
  * This function is called prior to VLC rendering a video frame.
@@ -142,25 +147,6 @@ int main(int argc, char *argv[]) {
     app_context.foreground_color = &foreground_color;
     app_context.background_color = &background_color;
 
-    // Create the window that we'll use
-    auto window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                   app_context.window_width,
-                                   app_context.window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    if (window == nullptr) {
-        printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-        return 1;
-    }
-//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "Linear");
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
-    app_context.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    app_context.texture = SDL_CreateTexture(app_context.renderer, SDL_PIXELFORMAT_BGR565, SDL_TEXTUREACCESS_STREAMING,
-                                            app_context.window_width, app_context.window_height);
-    if (!app_context.texture) {
-        fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
-    }
-    app_context.mutex = SDL_CreateMutex();
-
     // Let's initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
@@ -193,6 +179,40 @@ int main(int argc, char *argv[]) {
         printf("IMG_Init: Failed to init required png support!\n");
         printf("IMG_Init: %s\n", IMG_GetError());
     }
+
+    auto window_pos_x = 0;
+    auto window_pos_y = 0;
+    auto displays = SDL_GetNumVideoDisplays();
+    std::cout << "num_displays = " << displays << std::endl;
+    if (displays > 1) {
+        SDL_Rect second_display_bounds{};
+        SDL_GetDisplayBounds(1, &second_display_bounds);
+        // -1054, -1816
+        std::cout << "2nd = {" << second_display_bounds.x << ", " << second_display_bounds.y << ", "
+                  << second_display_bounds.w << ", " << second_display_bounds.h << "}" << std::endl;
+        window_pos_x = -1054;
+        window_pos_y = -1816;
+    }
+    std::cout << "window_pos_x = " << window_pos_x << ", y = " << window_pos_y << std::endl;
+    // Create the window that we'll use
+    auto window = SDL_CreateWindow(WINDOW_TITLE, 0, 0,
+                                   app_context.window_width,
+                                   app_context.window_height, SDL_WINDOW_SHOWN);
+    if (window == nullptr) {
+        printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_SetWindowPosition(window, window_pos_x, window_pos_y);
+//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "Linear");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
+    app_context.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    app_context.texture = SDL_CreateTexture(app_context.renderer, SDL_PIXELFORMAT_BGR565, SDL_TEXTUREACCESS_STREAMING,
+                                            app_context.window_width, app_context.window_height);
+    if (!app_context.texture) {
+        fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
+    }
+    app_context.mutex = SDL_CreateMutex();
 
     // Load the two indicator images that we'll use to point towards the next speaker.
     std::string back_arrow_path = "resources/images/arrow_back.png";
