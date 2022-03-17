@@ -13,7 +13,7 @@ constexpr int SCREEN_PIXEL_HEIGHT = 2160;
 //constexpr double PIXELS_PER_INCH = 100.f / 5.75f; // 100 pixels / 5.75 in (calculated empirically, see "ppi" branch)
 constexpr double PIXELS_PER_INCH = 253.93f;
 constexpr double SCREEN_INCH_WIDTH = (double) SCREEN_PIXEL_WIDTH / PIXELS_PER_INCH;
-constexpr size_t MOVING_AVG_SIZE = 5000;
+constexpr size_t MOVING_AVG_SIZE = 100;
 
 constexpr double PI = 3.14159265358979323846;
 

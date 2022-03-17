@@ -9,7 +9,6 @@ int to_pixels(double inches) {
 }
 
 int angle_to_pixel_position(double angle) {
-    angle -= PI;
     const auto position_in_inches = std::tan(angle) * INCHES_FROM_SCREEN;
     return to_pixels(position_in_inches);
 }
