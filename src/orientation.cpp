@@ -7,14 +7,10 @@ int to_pixels(double inches) {
     return inches * PIXELS_PER_INCH;
 }
 
-int angle_to_pixel(double angle) {
+int angle_to_pixel_position(double angle) {
     angle -= PI;
-    const auto offset_from_zero = std::atan(angle) * INCHES_FROM_SCREEN;
-    const auto adjusted = offset_from_zero + (SCREEN_INCH_WIDTH / 2);
-    if (adjusted < 0 || adjusted > SCREEN_INCH_WIDTH) {
-        return -3000;
-    }
-    return to_pixels(adjusted);
+    const auto position_in_inches = std::tan(angle) * INCHES_FROM_SCREEN;
+    return to_pixels(position_in_inches);
 }
 
 double to_radians(double degrees) {
@@ -74,5 +70,5 @@ double calculate_display_x_from_orientation(const AppContext *app_context) {
             app_context->azimuth_buffer->size();
     auto angle = average_azimuth;
     app_context->azimuth_mutex->unlock();
-    return angle_to_pixel(angle);
+    return angle_to_pixel_position(angle);
 }

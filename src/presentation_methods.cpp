@@ -18,8 +18,6 @@ std::optional<SDL_Rect> rectangle_intersection(const SDL_Rect *a, const SDL_Rect
     }
     int width = intersection_br_x - intersection_tl_x;
     int height = intersection_br_y - intersection_tl_y;
-    std::cout << "Intersection = {" << intersection_tl_x << ", " << intersection_tl_y << ", " << width << ", " << height
-              << "}" << std::endl;
     return SDL_Rect{intersection_tl_x, intersection_tl_y, width, height};
 }
 
@@ -118,7 +116,7 @@ void render_registered_captions(const AppContext *context) {
     if (text.empty()) {
         return;
     }
-    // We've previously identified where on the screen to place the captions underneath the jurors. Those are represented as percentages of the VLC surface width/height
+    // We've previously identified where on the screen to place the captions underneath the jurors. Those are represented as percentages of the VLC surface fov_x_2/height
     auto[left_x_percent, left_y_percent] = context->juror_positions->at(juror);
     // Now we just re-hydrate those values with the current size of the VLC surface to get where the captions should be positioned.
     int text_x = left_x_percent * context->display_rect.w;
@@ -126,6 +124,7 @@ void render_registered_captions(const AppContext *context) {
     // Retrieve the font to be used for the current juror
     auto font = context->juror_font_sizes->at(juror);
     // And let's create a surface of the text we've been given.
+
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *context->foreground_color,
                                                       *context->background_color,
                                                       WRAP_LENGTH);
@@ -133,7 +132,7 @@ void render_registered_captions(const AppContext *context) {
     // Now, here's where we do our clipping behavior.
     // The general idea is as follows:
     //
-    // The text surface has a width and height, and we know the text_x and text_y of where we're going to draw the
+    // The text surface has a fov_x_2 and height, and we know the text_x and text_y of where we're going to draw the
     // caption (assuming no clipping at all).
     const auto surface_rect = SDL_Rect{text_x, text_y, text_surface->w, text_surface->h};
 
@@ -142,10 +141,18 @@ void render_registered_captions(const AppContext *context) {
     auto azimuth = filtered_azimuth(context->azimuth_buffer, context->azimuth_mutex);
     const auto half_fov_in_radians = to_radians(HALF_FOV);
 
-    // We can calculate how much of the window width the FOV covers with some trig...
-    const auto fov_x = angle_to_pixel(azimuth - half_fov_in_radians);
-    const auto width = angle_to_pixel(azimuth + half_fov_in_radians);
-    const auto fov_region = SDL_Rect{fov_x, 0, width, context->window_height};
+    // We can calculate how much of the window fov_x_2 the FOV covers with some trig...
+    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV));
+    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV));
+    const auto fov_region = SDL_Rect{fov_x, 0, fov_x_2 - fov_x, context->window_height};
+
+//    SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
+//    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 100);
+//    SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_NONE);
+//    SDL_RenderFillRect(context->renderer, &fov_region);
+//    SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, 255);
+//    const auto azimuth_x = angle_to_pixel_position(azimuth);
+//    SDL_RenderDrawLine(context->renderer, azimuth_x, 0, azimuth_x, context->window_height);
 
     // and then find the intersection between the FOV region (which extends from the top to the bottom of the window, to
     // keep things easy) and the text surface rectangle, which should give us a rectangle indicating what part of the
