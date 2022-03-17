@@ -1,5 +1,6 @@
 #include <cmath>
 #include <deque>
+#include <iostream>
 #include "orientation.hpp"
 #include "cog-flatbuffer-definitions/orientation_message_generated.h"
 
@@ -38,9 +39,11 @@ void read_orientation(int socket, sockaddr_in *client_address, std::mutex *socke
         orientation_buffer->push_back(current_orientation->azimuth());
         azimuth_mutex->unlock();
         socket_mutex->lock();
-        num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
-                                  MSG_WAITALL, (struct sockaddr *) &(*client_address),
-                                  reinterpret_cast<socklen_t *>(&len));
+        if (recvfrom(socket, buffer.data(), buffer.size(),
+                     MSG_WAITALL, (struct sockaddr *) &(*client_address),
+                     reinterpret_cast<socklen_t *>(&len)) < 0) {
+            std::cerr << "recvfrom failed: " << strerror(errno) << std::endl;
+        }
         socket_mutex->unlock();
     }
 }

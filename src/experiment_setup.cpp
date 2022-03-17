@@ -45,7 +45,7 @@ std::tuple<int, sockaddr_in> connect_to_client(int port) {
 
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        fprintf(stderr, "socket() failed: %s\n", strerror(errno));
+        std::cerr << "socket() failed: " << strerror(errno) << std::endl;
         exit(EXIT_FAILURE);
     }
 
