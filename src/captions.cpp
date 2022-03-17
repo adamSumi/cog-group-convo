@@ -69,7 +69,29 @@ cog::Juror juror_from_string(const std::string &juror_str) {
     return juror;
 }
 
-void play_captions(nlohmann::json *caption_json, CaptionModel *model) {
+void transmit_caption(int socket, sockaddr_in* client_address, std::mutex *socket_mutex, const std::string &text,
+                      cog::Juror speaker_id, cog::Juror focused_id, int message_id, int chunk_id) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+    auto caption_message = cog::CreateCaptionMessageDirect(builder, text.c_str(), speaker_id, focused_id, message_id,
+                                                           chunk_id);
+    builder.Finish(caption_message);
+    uint8_t *buffer = builder.GetBufferPointer();
+    const auto size = builder.GetSize();
+    std::cout << "Buffer size = " << size << std::endl;
+    socklen_t len = sizeof(*client_address);
+
+    socket_mutex->lock();
+    if (sendto(socket, buffer, 1024, 0, (struct sockaddr *) &(*client_address),
+               len) < 0) {
+        fprintf(stderr, "sendto failed: %s\n", strerror(errno));
+    }
+    socket_mutex->unlock();
+}
+
+
+void
+start_caption_stream(int socket, sockaddr_in* client_address, std::mutex *socket_mutex, nlohmann::json *caption_json,
+                     CaptionModel *model) {
     for (auto i = 0; i < caption_json->size(); ++i) {
         auto text = caption_json->at(i)["text"].get<std::string>();
         double delay;
@@ -80,7 +102,11 @@ void play_captions(nlohmann::json *caption_json, CaptionModel *model) {
         }
         auto speaker_id_str = caption_json->at(i)["speaker_id"].get<std::string>();
         auto speaker_id = juror_from_string(speaker_id_str);
+        auto message_id = caption_json->at(i)["message_id"].get<int>();
+        auto chunk_id = caption_json->at(i)["chunk_id"].get<int>();
+        auto focused_id = cog::Juror_JuryForeman;
         std::this_thread::sleep_for(std::chrono::duration<double, std::ratio<1, 1000>>(delay));
+        transmit_caption(socket, client_address, socket_mutex, text, speaker_id, focused_id, message_id, chunk_id);
         model->add_word(text, speaker_id);
     }
 }

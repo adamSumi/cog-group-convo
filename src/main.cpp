@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
     std::deque<float> azimuth_buffer;
     app_context.azimuth_buffer = &azimuth_buffer;
     std::mutex socket_mutex;
-    std::thread read_orientation_thread(read_orientation, socket, cliaddr, &socket_mutex, &azimuth_mutex,
+    std::thread read_orientation_thread(read_orientation, socket, &cliaddr, &socket_mutex, &azimuth_mutex,
                                         &azimuth_buffer);
 
     nlohmann::json json;
@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
     while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
     }
     libvlc_media_player_play(mp);
-    std::thread play_captions_thread(play_captions, &json, &caption_model);
+    std::thread play_captions_thread(start_caption_stream, socket, &cliaddr, &socket_mutex, &json, &caption_model);
     SDL_Event event;
     bool done = false;
     int action = 0;

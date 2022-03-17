@@ -23,7 +23,7 @@ int angle_to_pixel_position(double angle);
 
 double to_radians(double degrees);
 
-void read_orientation(int socket, sockaddr_in client_address, std::mutex *socket_mutex, std::mutex *azimuth_mutex,
+void read_orientation(int socket, sockaddr_in* client_address, std::mutex *socket_mutex, std::mutex *azimuth_mutex,
                       std::deque<float> *orientation_buffer);
 
 double filtered_azimuth(std::deque<float> *azimuth_buffer, std::mutex *azimuth_mutex);

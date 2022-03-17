@@ -6,6 +6,7 @@
 #define COG_GROUP_CONVO_CPP_CAPTIONS_HPP
 
 #include <vector>
+#include <netinet/in.h>
 #include "cog-flatbuffer-definitions/caption_message_generated.h"
 #include "nlohmann/json.hpp"
 
@@ -28,6 +29,8 @@ public:
 
 cog::Juror juror_from_string(const std::string &juror_str);
 
-void play_captions(nlohmann::json *caption_json, CaptionModel *model);
+void
+start_caption_stream(int socket, sockaddr_in* client_address, std::mutex *socket_mutex, nlohmann::json *caption_json,
+                     CaptionModel *model);
 
 #endif //COG_GROUP_CONVO_CPP_CAPTIONS_HPP
