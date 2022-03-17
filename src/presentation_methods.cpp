@@ -2,12 +2,6 @@
 #include "presentation_methods.hpp"
 #include "orientation.hpp"
 
-/**
- * Return the intersection between two SDL_Rects as another SDL_Rect. If there is no intersection, return nullopt
- * @param a
- * @param b
- * @return An SDL_Rect if there is an intersection, otherwise nullopt.
- */
 std::optional<SDL_Rect> rectangle_intersection(const SDL_Rect *a, const SDL_Rect *b) {
     int intersection_tl_x = std::max(a->x, b->x);
     int intersection_tl_y = std::max(a->y, b->y);
@@ -22,13 +16,6 @@ std::optional<SDL_Rect> rectangle_intersection(const SDL_Rect *a, const SDL_Rect
 }
 
 
-/**
- * Renders the provided surface as a texture on the given renderer, using the position, width, and height provided.
- * @param renderer A pointer to an SDL_Renderer, which the surface will be rendered on
- * @param surface A pointer to the surface to be rendered
- * @param destination_rect The destination rectangle on which to render the surface
- * @param source_rect A rectangle outlining what section of the surface we want to render.
- */
 void render_surface_as_texture(SDL_Renderer *renderer, SDL_Surface *surface, SDL_Rect *source_rect,
                                SDL_Rect *destination_rect) {
     auto texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -37,20 +24,8 @@ void render_surface_as_texture(SDL_Renderer *renderer, SDL_Surface *surface, SDL
     SDL_DestroyTexture(texture);
 }
 
-/**
- * Renders the given text on the renderer using the position, colors, and font provided.
- * Returns the width and height of the texture rendered.
- * @param renderer A pointer to an SDL_Renderer, to which the text will be rendered
- * @param font A pointer to a TTF_Font, which will be used to display the text.
- * @param text The actual string to be displayed
- * @param x The x location at which to display the string
- * @param y The y location at which to display the string
- * @param foreground_color The color of the text
- * @param background_color The color of the background
- * @return
- */
 std::tuple<int, int>
-render_text(SDL_Renderer *renderer, TTF_Font *font, const std::string &text, const int x, const int y,
+render_text(SDL_Renderer *renderer, TTF_Font *font, const std::string &text, int x, int y,
             const SDL_Color *foreground_color, const SDL_Color *background_color) {
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *foreground_color,
                                                       *background_color,
@@ -74,10 +49,7 @@ void render_nonregistered_captions(const AppContext *context) {
                 context->background_color);
 }
 
-/**
- * Renders non-registered captions (captions that remain at a fixed location in the user's field-of-view) using the given app context.
- * @param context
- */
+
 void render_nonregistered_captions_with_indicators(const AppContext *context) {
     auto left_x = calculate_display_x_from_orientation(context);
     auto[juror, text] = context->caption_model->get_current_text();
@@ -106,11 +78,6 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
     render_surface_as_texture(context->renderer, arrow_surface, nullptr, &destination_rect);
 }
 
-/**
- * Renders registered captions (which remain fixed in space, pinned to the body of the person speaking)
- * using the given app context.
- * @param context
- */
 void render_registered_captions(const AppContext *context) {
     const auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {

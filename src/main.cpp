@@ -26,6 +26,7 @@
 #define REGISTERED_GRAPHICS 1
 #define NONREGISTERED_GRAPHICS 2
 #define NONREGISTERED_GRAPHICS_WITH_ARROWS 3
+#define CONTROL 4
 
 
 /**
@@ -67,6 +68,8 @@ static void unlock(void *data, [[maybe_unused]] void *id, [[maybe_unused]] void 
             break;
         case NONREGISTERED_GRAPHICS_WITH_ARROWS:
             render_nonregistered_captions_with_indicators(app_context);
+            break;
+        case CONTROL:
             break;
         default:
             std::cout << "Unknown method received: " << app_context->presentation_method << std::endl;
@@ -157,7 +160,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
     }
     app_context.mutex = SDL_CreateMutex();
-    
+
     // Let's initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
