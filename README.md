@@ -17,6 +17,26 @@ We rely on the code that VLC runs on (libvlc), so please ensure that your VLC ve
 You should install FFmpeg on your system. For most Linux-based systems, you can get this from your package manager. If
 not, you can get it [from their website](https://ffmpeg.org/).
 
+#### SDL
+
+This project depends heavily on a library called [SDL](https://libsdl.org), or **S**imple **D**irectMedia **L**ayer. SDL
+is in charge of rendering most of our content to the screen.
+
+##### Instructions
+
+Use your package manager to install SDL2!
+
+On MacOS:
+
+```shell
+brew install sdl2
+# You can also install the extension libraries on MacOS instead of building them from source.
+brew install sdl2_image
+brew install sdl2_ttf
+```
+
+For Ubuntu users, you will need to build the extensions from source.
+
 ### Building dependencies from source
 
 Unfortunately, due to some features being used by this project that are not in package manager repositories, you'll have
@@ -54,25 +74,6 @@ flatc --cpp caption_message.fbs
 ```
 
 You will now have the FlatBuffer definitions installed.
-
-#### SDL
-
-This project depends heavily on a library called [SDL](https://libsdl.org), or **S**imple **D**irectMedia **L**ayer. SDL
-is in charge of rendering most of our content to the screen.
-
-##### Instructions
-
-Perform the following _OUTSIDE OF THIS REPOSITORY_. Your "Downloads" folder will work fine.
-
-```shell
-git clone https://github.com/libsdl-org/SDL
-cd SDL
-mkdir build
-cd build
-../configure
-make
-sudo make install
-```
 
 #### SDL_ttf
 
