@@ -21,7 +21,7 @@ not, you can get it [from their website](https://ffmpeg.org/).
 
 QRencode is the library we use to render QR codes for scanning. You should be able to get this from your package manager.
 
-## Installing from Source
+## Source-based Dependency Installation
 
 You should just be able to run `./installation.sh` (MacOS/Linux only).
 This will install 3 graphics libraries used to render textures/surfaces/etc.
