@@ -17,100 +17,18 @@ We rely on the code that VLC runs on (libvlc), so please ensure that your VLC ve
 You should install FFmpeg on your system. For most Linux-based systems, you can get this from your package manager. If
 not, you can get it [from their website](https://ffmpeg.org/).
 
-### Building dependencies from source
+### QRencode
 
-Unfortunately, due to some features being used by this project that are not in package manager repositories, you'll have
-to build some dependencies from source code.
+QRencode is the library we use to render QR codes for scanning. You should be able to get this from your package manager.
 
-The following instructions were performed on Ubuntu 20.04, but will _probably_ work on Unix-like systems (i.e. MacOS)
+## Installing from Source
 
-### FlatBuffers Compiler
+You should just be able to run `./installation.sh` (MacOS/Linux only).
+This will install 3 graphics libraries used to render textures/surfaces/etc.
 
-Our server communicates using [FlatBuffers](https://github.com/google/flatbuffers/), which converts our messages into a
-binary format without the need for serialization/deserialization. You will need to install
-the [FlatBuffers compiler](https://google.github.io/flatbuffers/flatbuffers_guide_building.html).
-
-##### Instructions
-
-Perform the following _OUTSIDE OF THIS REPOSITORY_. Your "Downloads" folder will work fine.
-
-```shell
-git clone https://github.com/google/flatbuffers
-cd flatbuffers
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
-sudo make install
-```
-
-##### Generating FlatBuffer definitions
-
-Once you've got the compiler installed (test with `flatc` in your terminal), you'll need to generate the FlatBuffer
-definitions used in this project. Run the following commands _IN THIS REPOSITORY_.
-
-```shell
-git submodule update --remote
-cd include/cog-flatbuffer-definitions
-flatc --cpp orientation_message.fbs
-flatc --cpp caption_message.fbs
-```
-
-You will now have the FlatBuffer definitions installed.
-
-#### SDL
-
-This project depends heavily on a library called [SDL](https://libsdl.org), or **S**imple **D**irectMedia **L**ayer. SDL
-is in charge of rendering most of our content to the screen.
-
-##### Instructions
-
-Perform the following _OUTSIDE OF THIS REPOSITORY_. Your "Downloads" folder will work fine.
-
-```shell
-git clone https://github.com/libsdl-org/SDL
-cd SDL
-mkdir build
-cd build
-../configure
-make
-sudo make install
-```
-
-#### SDL_ttf
-
-SDL actually doesn't render the text to the screen, another library
-called [SDL_ttf](https://github.com/libsdl-org/SDL_ttf) or SDL **T**rue **T**ype **F**ont is in charge of that.
-
-##### Instructions
-
-Perform the following _OUTSIDE OF THIS REPOSITORY_. Your "Downloads" folder will work fine.
-
-```shell
-git clone https://github.com/libsdl-org/SDL_ttf
-cd SDL_ttf
-mkdir build
-cd build
-../configure
-make
-sudo make install
-```
-
-#### SDL_image
-
-Lastly, we rely on a library called [SDL_image](https://github.com/libsdl-org/SDL_image) for rendering our assets (
-indicators pointing in the direction of the next speaker).
-
-##### Instructions
-
-Perform the following _OUTSIDE OF THIS REPOSITORY_. Your "Downloads" folder will work fine.
-
-```shell
-git clone https://github.com/libsdl-org/SDL_image
-cd SDL_image
-mkdir build
-cd build
-../configure
-make
-sudo make install
-```
+1. **S**imple **D**irect Media **L**ayer, or SDL, which provides a high-level API for most platforms' graphics APIs
+2. SDL_ttf, an extension to SDL used for rendering text with FreeType
+3. SDL_image, an extension to SDL used for loading images.
 
 ## Videos
 
