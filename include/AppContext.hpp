@@ -5,10 +5,10 @@
 #ifndef COG_GROUP_CONVO_CPP_APPCONTEXT_HPP
 #define COG_GROUP_CONVO_CPP_APPCONTEXT_HPP
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mutex.h>
 #include <map>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_mutex.h>
+#include <SDL_ttf.h>
 #include "captions.hpp"
 
 struct AppContext {

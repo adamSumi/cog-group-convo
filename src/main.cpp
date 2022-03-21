@@ -10,8 +10,9 @@
 #include <cstdlib>
 #include <vlc/vlc.h>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mutex.h>
+#include <SDL.h>
+#include <SDL_mutex.h>
+#include <SDL_ttf.h>
 #include <SDL_image.h>
 
 #define PORT 65432

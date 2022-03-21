@@ -8,7 +8,7 @@
 #include <tuple>
 #include <netinet/in.h>
 #include <getopt.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 /**
  * Prints a QR code to the console. The QR code's contents are formatted as follows:

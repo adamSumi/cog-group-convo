@@ -1,9 +1,9 @@
 #ifndef COG_GROUP_CONVO_CPP_PRESENTATION_METHODS_HPP
 #define COG_GROUP_CONVO_CPP_PRESENTATION_METHODS_HPP
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <optional>
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 #include "AppContext.hpp"
 
 constexpr int WRAP_LENGTH = 0;
