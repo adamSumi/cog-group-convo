@@ -285,12 +285,13 @@ int main(int argc, char *argv[]) {
     // before we start playing our video on VLC and rendering captions.
     while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
     }
-    libvlc_media_player_play(mp);
-    std::thread play_captions_thread(start_caption_stream, socket, &cliaddr, &socket_mutex, &json, &caption_model);
     SDL_Event event;
     bool done = false;
     int action = 0;
     // Main loop.
+    bool started = false;
+    std::thread play_captions_thread(start_caption_stream, socket, &started, &cliaddr, &socket_mutex, &json,
+                                     &caption_model);
     while (!done) {
         action = 0;
 
@@ -325,6 +326,11 @@ int main(int argc, char *argv[]) {
             case SDLK_UP:
                 app_context.y -= 100;
                 break;
+            case SDLK_SPACE:
+                if (!started) {
+                    libvlc_media_player_play(mp);
+                    started = true;
+                }
             default:
                 break;
         }

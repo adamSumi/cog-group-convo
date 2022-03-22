@@ -89,8 +89,9 @@ void transmit_caption(int socket, sockaddr_in* client_address, std::mutex *socke
 
 
 void
-start_caption_stream(int socket, sockaddr_in* client_address, std::mutex *socket_mutex, nlohmann::json *caption_json,
+start_caption_stream(int socket, const bool* started, sockaddr_in* client_address, std::mutex *socket_mutex, nlohmann::json *caption_json,
                      CaptionModel *model) {
+    while (!(*started)) {}
     for (auto i = 0; i < caption_json->size(); ++i) {
         auto text = caption_json->at(i)["text"].get<std::string>();
         double delay;
