@@ -301,7 +301,7 @@ int main(int argc, char *argv[]) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
-                    done = 1;
+                    done = true;
                     break;
                 case SDL_KEYDOWN:
                     action = event.key.keysym.sym;
