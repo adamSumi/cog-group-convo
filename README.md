@@ -5,10 +5,15 @@ captions should be presented to people who are d/Deaf or hard-of-hearing in grou
 
 ## Prerequisites
 
+Before doing anything else, go ahead and run `git submodule init` and `git submodule update`. We have
+two [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) in our project:
+the [FlatBuffers](https://github.com/google/flatbuffers) compiler, and
+the [definitions we use to transmit data](https://github.com/Captioning-on-Glass/cog-flatbuffer-definitions).
+
 To minimize the amount of time you have to spend debugging things in your terminal, I've broken up our dependencies into
 two categories: dependencies you can install using your package manager (most likely), and dependencies that you have to
-compile and install from source (that come with a nifty shell script for those who need things done quickly and easily)
-. **Both the source dependencies and the package-manager dependencies need to be installed**.
+compile and install from source (that come with a nifty shell script for those who need things done quickly and easily).
+**Both the source dependencies and the package-manager dependencies need to be installed**.
 
 ## Package Manager Dependencies
 
