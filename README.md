@@ -1,8 +1,14 @@
 # Captioning on Glass: Group Conversations
 
+This repository contains code used to simulate a group conversation between hearing individuals, for use in studying how
+captions should be presented to people who are d/Deaf or hard-of-hearing in group conversations.
+
 ## Prerequisites
 
-To minimize the amount of time you have to spend debugging things in your terminal, I've broken up our dependencies into two categories: dependencies you can install using your package manager (most likely), and dependencies that you have to compile and install from source (that come with a nifty shell script for those who need things done quickly and easily). **Both the source dependencies and the package-manager dependencies are important**.
+To minimize the amount of time you have to spend debugging things in your terminal, I've broken up our dependencies into
+two categories: dependencies you can install using your package manager (most likely), and dependencies that you have to
+compile and install from source (that come with a nifty shell script for those who need things done quickly and easily)
+. **Both the source dependencies and the package-manager dependencies need to be installed**.
 
 ## Package Manager Dependencies
 
@@ -23,12 +29,13 @@ not, you can get it [from their website](https://ffmpeg.org/).
 
 ### QRencode
 
-QRencode is the library we use to render QR codes for scanning. You should be able to get this from your package manager.
+QRencode is the library we use to render QR codes for scanning. You should be able to get this from your package
+manager.
 
 ## Source-based Dependency Installation
 
-You should just be able to run `./installation.sh` (MacOS/Linux only).
-This will install 3 graphics libraries used to render textures/surfaces/etc.
+You should just be able to run `./installation.sh` (MacOS/Linux only). This will install 3 graphics libraries used to
+render textures/surfaces/etc.
 
 1. **S**imple **D**irect Media **L**ayer, or SDL, which provides a high-level API for most platforms' graphics APIs
 2. SDL_ttf, an extension to SDL used for rendering text with FreeType
@@ -43,7 +50,8 @@ The installation script essentially does the following steps 3 times (once per l
 5. `make` (which builds the library)
 6. `sudo make install` (which installs the library into a globally-accessible location)
 
-These scripts are intentionally designed for Unix-based OS (which reflect the development machines used in this research), so Windows users will have to figure out what works best for them.
+These scripts are intentionally designed for Unix-based OS (which reflect the development machines used in this
+research), so Windows users will have to figure out what works best for them.
 
 ## Videos
 
