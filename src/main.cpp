@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
     // Create the window that we'll use
     auto window = SDL_CreateWindow(WINDOW_TITLE, 0, 0,
                                    app_context.window_width,
-                                   app_context.window_height, SDL_WINDOW_SHOWN);
+                                   app_context.window_height, SDL_WINDOW_SHOWN    );
     if (window == nullptr) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
@@ -259,7 +259,6 @@ int main(int argc, char *argv[]) {
     libvlc_video_set_format(mp, "RV16", app_context.window_width, app_context.window_height,
                             app_context.window_width * 2);
 //    libvlc_media_player_play(mp);
-    libvlc_media_player_pause(mp);
 
     std::mutex azimuth_mutex;
     app_context.azimuth_mutex = &azimuth_mutex;
@@ -291,6 +290,7 @@ int main(int argc, char *argv[]) {
     bool started = false;
     std::thread play_captions_thread(start_caption_stream, socket, &started, &cliaddr, &socket_mutex, &json,
                                      &caption_model);
+    SDL_RenderPresent(app_context.renderer);
     while (!done) {
         action = 0;
 
