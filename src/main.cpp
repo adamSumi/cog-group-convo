@@ -258,8 +258,8 @@ int main(int argc, char *argv[]) {
     libvlc_video_set_callbacks(mp, lock, unlock, display, &app_context);
     libvlc_video_set_format(mp, "RV16", app_context.window_width, app_context.window_height,
                             app_context.window_width * 2);
-    libvlc_media_player_play(mp);
-//    libvlc_media_player_pause(mp);
+//    libvlc_media_player_play(mp);
+    libvlc_media_player_pause(mp);
 
     std::mutex azimuth_mutex;
     app_context.azimuth_mutex = &azimuth_mutex;
