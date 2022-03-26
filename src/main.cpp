@@ -31,8 +31,8 @@
 
 // BOUNDS = {-1111, -2160, 3840, 2160}
 // Good position = {-1054, -1816}
-#define WINDOW_OFFSET_X 57 // ASSUMING 3840x2160 DISPLAY
-#define WINDOW_OFFSET_Y 415
+#define WINDOW_OFFSET_X 83 // ASSUMING 3840x2160 DISPLAY
+#define WINDOW_OFFSET_Y 292
 
 
 /**
@@ -181,18 +181,15 @@ int main(int argc, char *argv[]) {
         printf("IMG_Init: %s\n", IMG_GetError());
     }
 
-    auto window_pos_x = 0;
-    auto window_pos_y = 0;
+    auto window_pos_x = WINDOW_OFFSET_X;
+    auto window_pos_y = WINDOW_OFFSET_Y;
     auto displays = SDL_GetNumVideoDisplays();
     std::cout << "num_displays = " << displays << std::endl;
     if (displays > 1) {
         SDL_Rect second_display_bounds{};
         SDL_GetDisplayBounds(1, &second_display_bounds);
-        // -1054, -1816
-        std::cout << "2nd = {" << second_display_bounds.x << ", " << second_display_bounds.y << ", "
-                  << second_display_bounds.w << ", " << second_display_bounds.h << "}" << std::endl;
-        window_pos_x = -1054;
-        window_pos_y = -1816;
+        window_pos_x -= second_display_bounds.x;
+        window_pos_y -= second_display_bounds.y;
     }
     std::cout << "window_pos_x = " << window_pos_x << ", y = " << window_pos_y << std::endl;
     // Create the window that we'll use
@@ -262,7 +259,7 @@ int main(int argc, char *argv[]) {
     libvlc_video_set_format(mp, "RV16", app_context.window_width, app_context.window_height,
                             app_context.window_width * 2);
     libvlc_media_player_play(mp);
-    libvlc_media_player_pause(mp);
+//    libvlc_media_player_pause(mp);
 
     std::mutex azimuth_mutex;
     app_context.azimuth_mutex = &azimuth_mutex;

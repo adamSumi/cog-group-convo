@@ -22,7 +22,7 @@ void print_connection_qr(int presentation_method, int port) {
             sa = (struct sockaddr_in *) ifa->ifa_addr;
             addr = inet_ntoa(sa->sin_addr);
             std::string interface = std::string(ifa->ifa_name);
-            if (interface == "wlp3s0" || interface == "wlan0" || interface == "en0") {
+            if (interface == "wlp3s0" || interface == "wlan0" || interface == "en0" || interface == "en1") {
                 std::ostringstream command;
 
                 std::string address = std::string(addr);
