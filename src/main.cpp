@@ -29,8 +29,6 @@
 #define NONREGISTERED_GRAPHICS_WITH_ARROWS 3
 #define CONTROL 4
 
-// BOUNDS = {-1111, -2160, 3840, 2160}
-// Good position = {-1054, -1816}
 #define WINDOW_OFFSET_X 83 // ASSUMING 3840x2160 DISPLAY
 #define WINDOW_OFFSET_Y 292
 
@@ -193,13 +191,12 @@ int main(int argc, char *argv[]) {
     // Create the window that we'll use
     auto window = SDL_CreateWindow(WINDOW_TITLE, 0, 0,
                                    app_context.window_width,
-                                   app_context.window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+                                   app_context.window_height, SDL_WINDOW_SHOWN);
     if (window == nullptr) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
     }
     SDL_SetWindowPosition(window, window_pos_x, window_pos_y);
-//    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "Linear");
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     app_context.renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
