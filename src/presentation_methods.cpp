@@ -95,6 +95,9 @@ void render_registered_captions(const AppContext *context) {
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *context->foreground_color,
                                                       *context->background_color,
                                                       WRAP_LENGTH);
+//    SDL_Rect rect = {text_x, text_y, text_surface->w, text_surface->h};
+//    render_surface_as_texture(context->renderer, text_surface, nullptr, &rect);
+//    return;
 
     // Now, here's where we do our clipping behavior.
     // The general idea is as follows:

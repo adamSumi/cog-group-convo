@@ -184,14 +184,12 @@ int main(int argc, char *argv[]) {
     auto window_pos_x = WINDOW_OFFSET_X;
     auto window_pos_y = WINDOW_OFFSET_Y;
     auto displays = SDL_GetNumVideoDisplays();
-    std::cout << "num_displays = " << displays << std::endl;
     if (displays > 1) {
         SDL_Rect second_display_bounds{};
         SDL_GetDisplayBounds(1, &second_display_bounds);
-        window_pos_x -= second_display_bounds.x;
-        window_pos_y -= second_display_bounds.y;
+        window_pos_x = second_display_bounds.x + WINDOW_OFFSET_X;
+        window_pos_y = second_display_bounds.y + WINDOW_OFFSET_Y;
     }
-    std::cout << "window_pos_x = " << window_pos_x << ", y = " << window_pos_y << std::endl;
     // Create the window that we'll use
     auto window = SDL_CreateWindow(WINDOW_TITLE, 0, 0,
                                    app_context.window_width,
@@ -280,15 +278,16 @@ int main(int argc, char *argv[]) {
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-    }
-    libvlc_media_player_play(mp);
+//    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+//    }
+    bool started = false;
 
     SDL_Event event;
     bool done = false;
     int action = 0;
     // Main loop.
-    std::thread play_captions_thread(start_caption_stream, socket, &cliaddr, &socket_mutex, &json,
+    std::thread play_captions_thread(start_caption_stream, &started, socket, &cliaddr, &socket_mutex,
+                                     &json,
                                      &caption_model);
     SDL_RenderPresent(app_context.renderer);
     while (!done) {
@@ -324,6 +323,12 @@ int main(int argc, char *argv[]) {
                 break;
             case SDLK_UP:
                 app_context.y -= 100;
+                break;
+            case SDLK_SPACE:
+                if (!started) {
+                    started = true;
+                    libvlc_media_player_play(mp);
+                }
                 break;
             default:
                 break;
