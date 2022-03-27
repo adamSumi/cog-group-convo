@@ -102,7 +102,7 @@ void render_registered_captions(const AppContext *context) {
     // Now, here's where we do our clipping behavior.
     // The general idea is as follows:
     //
-    // The text surface has a fov_x_2 and height, and we know the text_x and text_y of where we're going to draw the
+    // The text surface has a width and height, and we know the text_x and text_y of where we're going to draw the
     // caption (assuming no clipping at all).
     const auto surface_rect = SDL_Rect{text_x, text_y, text_surface->w, text_surface->h};
 
@@ -114,7 +114,9 @@ void render_registered_captions(const AppContext *context) {
     // We can calculate how much of the window fov_x_2 the FOV covers with some trig...
     const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV));
     const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV));
-    const auto fov_region = SDL_Rect{fov_x, 0, fov_x_2 - fov_x, context->window_height};
+    auto l = std::min(fov_x, fov_x_2);
+    auto r = std::max(fov_x, fov_x_2);
+    const auto fov_region = SDL_Rect{l, 0, r-l, context->window_height};
 
 //    SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
 //    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 100);
