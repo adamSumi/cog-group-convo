@@ -315,12 +315,6 @@ int main(int argc, char *argv[]) {
             case SDLK_q:
                 done = true;
                 break;
-            case SDLK_DOWN:
-                app_context.y += 100;
-                break;
-            case SDLK_UP:
-                app_context.y -= 100;
-                break;
             case SDLK_SPACE:
                 if (!started) {
                     started = true;
