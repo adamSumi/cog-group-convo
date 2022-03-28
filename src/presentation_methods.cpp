@@ -112,18 +112,20 @@ void render_registered_captions(const AppContext *context) {
     const auto half_fov_in_radians = to_radians(HALF_FOV);
 
     // We can calculate how much of the window fov_x_2 the FOV covers with some trig...
-    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV)) + context->window_width / 2;
-    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV)) + context->window_width / 2;
+    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV)) +
+                       (context->window_width);
+    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV)) +
+                         (context->window_width);
     auto l = std::min(fov_x, fov_x_2);
     auto r = std::max(fov_x, fov_x_2);
-    const auto fov_region = SDL_Rect{l, 0, r-l, context->window_height};
+    const auto fov_region = SDL_Rect{l, 0, r - l, context->window_height};
 
-    SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 128);
-    SDL_RenderFillRect(context->renderer, &fov_region);
-    SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, 255);
-    const auto azimuth_x = angle_to_pixel_position(azimuth);
-    SDL_RenderDrawLine(context->renderer, azimuth_x, 0, azimuth_x, context->window_height);
+//    SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
+//    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 128);
+//    SDL_RenderFillRect(context->renderer, &fov_region);
+//    SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, 255);
+//    const auto azimuth_x = angle_to_pixel_position(azimuth) + (context->window_width);
+//    SDL_RenderDrawLine(context->renderer, azimuth_x, 0, azimuth_x, context->window_height);
 
     // and then find the intersection between the FOV region (which extends from the top to the bottom of the window, to
     // keep things easy) and the text surface rectangle, which should give us a rectangle indicating what part of the
