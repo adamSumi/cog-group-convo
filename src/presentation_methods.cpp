@@ -61,20 +61,26 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
                                                       context->medium_font, text, left_x + context->window_width,
                                                       context->y,
                                                       context->foreground_color, context->background_color);
-    bool should_show_back_arrow = false;
-    bool should_show_forward_arrow = true;
 
-    if (!(should_show_forward_arrow || should_show_back_arrow)) {
-        return;
+    auto adjusted_x = left_x + context->window_width / 2;
+
+    bool should_show_forward_arrow = false;
+    bool should_show_back_arrow = false;
+    const auto[left, right] = context->juror_intervals->at(juror);
+    if (adjusted_x < left) {
+        should_show_forward_arrow = true;
+    }
+    if (adjusted_x > right) {
+        should_show_back_arrow = true;
     }
     int x = 0;
     SDL_Surface *arrow_surface = nullptr;
     if (should_show_back_arrow) {
         arrow_surface = context->back_arrow;
-        x = left_x - arrow_surface->w;
+        x = adjusted_x - arrow_surface->w;
     } else if (should_show_forward_arrow) {
         arrow_surface = context->forward_arrow;
-        x = left_x + text_width;
+        x = adjusted_x + text_width;
     }
     auto destination_rect = SDL_Rect{x, context->y, arrow_surface->w, arrow_surface->h};
     render_surface_as_texture(context->renderer, arrow_surface, nullptr, &destination_rect);

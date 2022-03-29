@@ -138,6 +138,22 @@ int main(int argc, char *argv[]) {
     app_context.juror_positions = &juror_positions;
     app_context.window_width = SCREEN_PIXEL_WIDTH;
     app_context.window_height = SCREEN_PIXEL_HEIGHT;
+
+    const auto juror_a_l = juror_positions.at(cog::Juror_JurorA).first * app_context.window_width;
+    const auto juror_a_r = juror_a_l + 300.f;
+    const auto juror_b_l = juror_positions.at(cog::Juror_JurorB).first * app_context.window_width;
+    const auto juror_b_r = juror_b_l + 350.f;
+    const auto juror_c_l = juror_positions.at(cog::Juror_JurorC).first * app_context.window_width;
+    const auto juror_c_r = juror_c_l + 600.f;
+    const auto jury_foreman_l = juror_positions.at(cog::Juror_JuryForeman).first * app_context.window_width;
+    const auto jury_foreman_r = jury_foreman_l + 600.f;
+    const std::map<cog::Juror, std::pair<double, double>> juror_intervals{
+            {cog::Juror_JurorA,      {juror_a_l,      juror_a_r}},
+            {cog::Juror_JurorB,      {juror_b_l,      juror_b_r}},
+            {cog::Juror_JurorC,      {juror_c_l,      juror_c_r}},
+            {cog::Juror_JuryForeman, {jury_foreman_l, jury_foreman_r}}
+    };
+    app_context.juror_intervals = &juror_intervals;
     // For non-registered captions, render them at 75% of the window's height.
     app_context.y = app_context.window_height * 0.6;
 
@@ -275,8 +291,8 @@ int main(int argc, char *argv[]) {
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
     if (presentation_method != CONTROL) {
-        while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-        }
+//        while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+//        }
     }
     bool started = false;
 

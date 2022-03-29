@@ -33,5 +33,6 @@ struct AppContext {
     SDL_Rect display_rect;
     int window_width;
     int window_height;
+    const std::map<cog::Juror, std::pair<double, double>> *juror_intervals;
 };
 #endif //COG_GROUP_CONVO_CPP_APPCONTEXT_HPP
