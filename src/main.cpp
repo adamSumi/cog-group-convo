@@ -274,7 +274,9 @@ int main(int argc, char *argv[]) {
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+    if (presentation_method != CONTROL) {
+        while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+        }
     }
     bool started = false;
 
