@@ -52,7 +52,8 @@ void render_nonregistered_captions(const AppContext *context) {
 
 
 void render_nonregistered_captions_with_indicators(const AppContext *context) {
-    auto left_x = calculate_display_x_from_orientation(context);
+    auto left_x = filtered_azimuth(context->azimuth_buffer, context->azimuth_mutex);
+    const auto adjusted_x = angle_to_pixel_position(left_x) + (context->window_width / 2);
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
@@ -61,28 +62,24 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
                                                       context->medium_font, text, left_x + context->window_width,
                                                       context->y,
                                                       context->foreground_color, context->background_color);
-
-    auto adjusted_x = left_x + context->window_width / 2;
-
     bool should_show_forward_arrow = false;
     bool should_show_back_arrow = false;
     const auto[left, right] = context->juror_intervals->at(juror);
-    if (adjusted_x < left) {
+    if ((adjusted_x + text_width / 2) < left) {
         should_show_forward_arrow = true;
-    }
-    if (adjusted_x > right) {
+    } else if ((adjusted_x + text_width / 2) > right) {
         should_show_back_arrow = true;
     }
-    int x = 0;
+    int arrow_x = adjusted_x;
     SDL_Surface *arrow_surface = nullptr;
     if (should_show_back_arrow) {
         arrow_surface = context->back_arrow;
-        x = adjusted_x - arrow_surface->w;
+        arrow_x -= arrow_surface->w;
     } else if (should_show_forward_arrow) {
         arrow_surface = context->forward_arrow;
-        x = adjusted_x + text_width;
+        arrow_x += text_width;
     }
-    auto destination_rect = SDL_Rect{x, context->y, arrow_surface->w, arrow_surface->h};
+    auto destination_rect = SDL_Rect{arrow_x, context->y, arrow_surface->w, arrow_surface->h};
     render_surface_as_texture(context->renderer, arrow_surface, nullptr, &destination_rect);
 }
 
