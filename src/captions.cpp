@@ -90,7 +90,7 @@ void transmit_caption(int socket, sockaddr_in *client_address, std::mutex *socke
 
 void
 start_caption_stream(const bool *started, int socket, sockaddr_in *client_address, std::mutex *socket_mutex,
-                     nlohmann::json *caption_json, CaptionModel *model) {
+                     nlohmann::json *caption_json, CaptionModel *model, const int presentation_method) {
     while (!(*started)) {}
     for (auto i = 0; i < caption_json->size(); ++i) {
         auto text = caption_json->at(i)["text"].get<std::string>();
@@ -105,8 +105,10 @@ start_caption_stream(const bool *started, int socket, sockaddr_in *client_addres
         auto message_id = caption_json->at(i)["message_id"].get<int>();
         auto chunk_id = caption_json->at(i)["chunk_id"].get<int>();
         auto focused_id = cog::Juror_JuryForeman;
+        if (presentation_method == 4) {
+            transmit_caption(socket, client_address, socket_mutex, text, speaker_id, focused_id, message_id, chunk_id);
+        }
         std::this_thread::sleep_for(std::chrono::duration<double, std::ratio<1, 1000>>(delay));
-//        transmit_caption(socket, client_address, socket_mutex, text, speaker_id, focused_id, message_id, chunk_id);
         model->add_word(text, speaker_id);
     }
 }
