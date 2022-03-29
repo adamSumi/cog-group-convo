@@ -111,8 +111,7 @@ int main(int argc, char *argv[]) {
     presentation_method, // How will we be presenting captions?
     foreground_color, // What color will the text be? RGBA format
     background_color, // What color will the background behind the text be? RGBA format
-    path_to_font, // Where's the smallest_font located?
-    font_size // How big will the smallest_font be?
+    path_to_font // Where's the smallest_font located?
     ] = parse_arguments(argc, argv);
 
     std::cout << "Using presentation method: " << presentation_method << std::endl;
@@ -285,7 +284,7 @@ int main(int argc, char *argv[]) {
     // Main loop.
     std::thread play_captions_thread(start_caption_stream, &started, socket, &cliaddr, &socket_mutex,
                                      &json,
-                                     &caption_model);
+                                     &caption_model, presentation_method);
     SDL_RenderPresent(app_context.renderer);
     while (!done) {
         action = 0;

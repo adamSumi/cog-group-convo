@@ -28,10 +28,9 @@ static struct option long_options[] = {
         {"foreground_color",    required_argument, nullptr, 'f'},
         {"background_color",    required_argument, nullptr, 'b'},
         {"path_to_font",        required_argument, nullptr, 'p'},
-        {"font_size",           required_argument, nullptr, 's'}
 };
 
-std::tuple<int, int, SDL_Color, SDL_Color, std::string, int>
+std::tuple<int, int, SDL_Color, SDL_Color, std::string>
 parse_arguments(int argc, char *argv[]);
 
 #endif //COG_GROUP_CONVO_CPP_EXPERIMENT_SETUP_HPP
