@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
     app_context.window_width = SCREEN_PIXEL_WIDTH;
     app_context.window_height = SCREEN_PIXEL_HEIGHT;
     // For non-registered captions, render them at 75% of the window's height.
-    app_context.y = app_context.window_height * 0.75;
+    app_context.y = app_context.window_height * 0.6;
 
     // Let's load the foreground and background colors.
     app_context.foreground_color = &foreground_color;
@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-//            "--no-audio", // Don't play audio.
+            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -274,8 +274,8 @@ int main(int argc, char *argv[]) {
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-//    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-//    }
+    while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
+    }
     bool started = false;
 
     SDL_Event event;

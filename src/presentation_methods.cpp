@@ -45,7 +45,8 @@ void render_nonregistered_captions(const AppContext *context) {
     if (text.empty()) {
         return;
     }
-    render_text(context->renderer, context->medium_font, text, left_x, context->y, context->foreground_color,
+    render_text(context->renderer, context->medium_font, text, left_x + context->window_width / 2, context->y,
+                context->foreground_color,
                 context->background_color);
 }
 
@@ -57,7 +58,8 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
         return;
     }
     const auto[text_width, text_height] = render_text(context->renderer,
-                                                      context->medium_font, text, left_x, context->y,
+                                                      context->medium_font, text, left_x + context->window_width,
+                                                      context->y,
                                                       context->foreground_color, context->background_color);
     bool should_show_back_arrow = false;
     bool should_show_forward_arrow = true;
@@ -113,9 +115,9 @@ void render_registered_captions(const AppContext *context) {
 
     // We can calculate how much of the window fov_x_2 the FOV covers with some trig...
     const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV)) +
-                       (context->window_width);
+                       (context->window_width / 2);
     const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV)) +
-                         (context->window_width);
+                         (context->window_width / 2);
     auto l = std::min(fov_x, fov_x_2);
     auto r = std::max(fov_x, fov_x_2);
     const auto fov_region = SDL_Rect{l, 0, r - l, context->window_height};
