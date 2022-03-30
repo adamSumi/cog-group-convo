@@ -59,7 +59,7 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
         return;
     }
     const auto[text_width, text_height] = render_text(context->renderer,
-                                                      context->medium_font, text, left_x + context->window_width,
+                                                      context->medium_font, text, adjusted_x,
                                                       context->y,
                                                       context->foreground_color, context->background_color);
     bool should_show_forward_arrow = false;
