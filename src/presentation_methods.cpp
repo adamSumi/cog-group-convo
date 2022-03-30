@@ -79,6 +79,10 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
         arrow_surface = context->forward_arrow;
         arrow_x += text_width;
     }
+
+    if (!(should_show_back_arrow || should_show_forward_arrow)) {
+        return;
+    }
     auto destination_rect = SDL_Rect{arrow_x, context->y, arrow_surface->w, arrow_surface->h};
     render_surface_as_texture(context->renderer, arrow_surface, nullptr, &destination_rect);
 }
