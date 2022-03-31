@@ -41,7 +41,7 @@ render_text(SDL_Renderer *renderer, TTF_Font *font, const std::string &text, int
 
 void render_nonregistered_captions(const AppContext *context) {
     auto left_x = filtered_azimuth(context->azimuth_buffer, context->azimuth_mutex);
-    const auto adjusted_x = angle_to_pixel_position(left_x);
+    const auto adjusted_x = angle_to_pixel_position(left_x) + context->window_width / 4;
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
@@ -54,7 +54,7 @@ void render_nonregistered_captions(const AppContext *context) {
 
 void render_nonregistered_captions_with_indicators(const AppContext *context) {
     auto left_x = filtered_azimuth(context->azimuth_buffer, context->azimuth_mutex);
-    const auto adjusted_x = angle_to_pixel_position(left_x);
+    const auto adjusted_x = angle_to_pixel_position(left_x) + context->window_width / 4;
     auto[juror, text] = context->caption_model->get_current_text();
     if (text.empty()) {
         return;
@@ -122,8 +122,10 @@ void render_registered_captions(const AppContext *context) {
     const auto half_fov_in_radians = to_radians(HALF_FOV);
 
     // We can calculate how much of the window fov_x_2 the FOV covers with some trig...
-    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV));
-    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV));
+    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV)) +
+                       context->window_width / 4;
+    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV)) +
+                         context->window_width / 4;
     auto l = std::min(fov_x, fov_x_2);
     auto r = std::max(fov_x, fov_x_2);
     const auto fov_region = SDL_Rect{l, 0, r - l, context->window_height};
