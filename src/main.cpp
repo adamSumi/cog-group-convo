@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
     // Create the window that we'll use
     auto window = SDL_CreateWindow(WINDOW_TITLE, 0, 0,
                                    app_context.window_width,
-                                   app_context.window_height, SDL_WINDOW_SHOWN);
+                                   app_context.window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (window == nullptr) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
 
     std::mutex azimuth_mutex;
     app_context.azimuth_mutex = &azimuth_mutex;
-    std::deque<float> azimuth_buffer;
+    std::deque<float> azimuth_buffer{};
     app_context.azimuth_buffer = &azimuth_buffer;
     std::mutex socket_mutex;
     std::thread read_orientation_thread(read_orientation, socket, &cliaddr, &socket_mutex, &azimuth_mutex,

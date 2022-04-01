@@ -35,7 +35,11 @@ void read_orientation(int socket, sockaddr_in *client_address, std::mutex *socke
             orientation_buffer->pop_front();
         }
         auto current_orientation = cog::GetOrientationMessage(buffer.data());
-        orientation_buffer->push_back(current_orientation->azimuth());
+        auto current_azimuth = current_orientation->azimuth();
+        if (current_azimuth < 0) {
+            current_azimuth = current_azimuth + 2 * PI;
+        }
+        orientation_buffer->push_back(current_azimuth);
         azimuth_mutex->unlock();
         socket_mutex->lock();
         if (recvfrom(socket, buffer.data(), buffer.size(),
@@ -56,21 +60,8 @@ double filtered_azimuth(std::deque<float> *azimuth_buffer, std::mutex *azimuth_m
     double average_azimuth =
             std::accumulate(azimuth_buffer->begin(), azimuth_buffer->end(), 0.0) /
             azimuth_buffer->size();
+//    double median_azimuth = median(azimuth_buffer);
     auto angle = average_azimuth;
     azimuth_mutex->unlock();
     return angle;
-}
-
-double calculate_display_x_from_orientation(const AppContext *app_context) {
-    app_context->azimuth_mutex->lock();
-    if (app_context->azimuth_buffer->empty()) {
-        app_context->azimuth_mutex->unlock();
-        return 0;
-    }
-    double average_azimuth =
-            std::accumulate(app_context->azimuth_buffer->begin(), app_context->azimuth_buffer->end(), 0.0) /
-            app_context->azimuth_buffer->size();
-    auto angle = average_azimuth;
-    app_context->azimuth_mutex->unlock();
-    return angle_to_pixel_position(angle);
 }

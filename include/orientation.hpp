@@ -28,6 +28,4 @@ void read_orientation(int socket, sockaddr_in *client_address, std::mutex *socke
 
 double filtered_azimuth(std::deque<float> *azimuth_buffer, std::mutex *azimuth_mutex);
 
-double calculate_display_x_from_orientation(const AppContext *app_context);
-
 #endif //COG_GROUP_CONVO_CPP_ORIENTATION_HPP
