@@ -79,12 +79,11 @@ void transmit_caption(int socket, sockaddr_in *client_address, std::mutex *socke
     const auto size = builder.GetSize();
     socklen_t len = sizeof(*client_address);
 
-    socket_mutex->lock();
-    if (sendto(socket, buffer, 1024, 0, (struct sockaddr *) &(*client_address),
+    if (sendto(socket, buffer, size, 0, (struct sockaddr *) &(*client_address),
                len) < 0) {
         std::cerr << "sendto failed: " << strerror(errno) << std::endl;
     }
-    socket_mutex->unlock();
+    std::cout << text << std::endl;
 }
 
 

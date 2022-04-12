@@ -21,14 +21,13 @@ double to_radians(double degrees) {
 void read_orientation(int socket, sockaddr_in *client_address, std::mutex *socket_mutex, std::mutex *azimuth_mutex,
                       std::deque<float> *orientation_buffer) {
     size_t len, num_bytes_read;
-    std::array<char, 1024> buffer{};
+    std::array<char, 256> buffer{};
     len = sizeof(*client_address);
 
     socket_mutex->lock();
     num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
-                              MSG_WAITALL, (struct sockaddr *) &(*client_address),
+                              0, (struct sockaddr *) &(*client_address),
                               reinterpret_cast<socklen_t *>(&len));
-    socket_mutex->unlock();
     while (num_bytes_read != -1) {
         azimuth_mutex->lock();
         if (orientation_buffer->size() == MOVING_AVG_SIZE) {
@@ -41,13 +40,11 @@ void read_orientation(int socket, sockaddr_in *client_address, std::mutex *socke
         }
         orientation_buffer->push_back(current_azimuth);
         azimuth_mutex->unlock();
-        socket_mutex->lock();
         if (recvfrom(socket, buffer.data(), buffer.size(),
-                     MSG_WAITALL, (struct sockaddr *) &(*client_address),
+                     0, (struct sockaddr *) &(*client_address),
                      reinterpret_cast<socklen_t *>(&len)) < 0) {
             std::cerr << "recvfrom failed: " << strerror(errno) << std::endl;
         }
-        socket_mutex->unlock();
     }
 }
 

@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
     // Create the window that we'll use
     auto window = SDL_CreateWindow(WINDOW_TITLE, 0, 0,
                                    app_context.window_width,
-                                   app_context.window_height, SDL_WINDOW_SHOWN);
+                                   app_context.window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (window == nullptr) {
         printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
         return 1;
@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
-            "--no-audio", // Don't play audio.
+//            "--no-audio", // Don't play audio.
             "--no-xlib", // Don't use Xlib.
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
@@ -274,8 +274,10 @@ int main(int argc, char *argv[]) {
     std::deque<float> azimuth_buffer{};
     app_context.azimuth_buffer = &azimuth_buffer;
     std::mutex socket_mutex;
-    std::thread read_orientation_thread(read_orientation, socket, &cliaddr, &socket_mutex, &azimuth_mutex,
-                                        &azimuth_buffer);
+//    if (presentation_method != CONTROL) {
+        std::thread read_orientation_thread(read_orientation, socket, &cliaddr, &socket_mutex, &azimuth_mutex,
+                                            &azimuth_buffer);
+//    }
 
     nlohmann::json json;
     os.str("");
