@@ -273,9 +273,8 @@ int main(int argc, char *argv[]) {
     app_context.azimuth_mutex = &azimuth_mutex;
     std::deque<float> azimuth_buffer{};
     app_context.azimuth_buffer = &azimuth_buffer;
-    std::mutex socket_mutex;
 //    if (presentation_method != CONTROL) {
-        std::thread read_orientation_thread(read_orientation, socket, &cliaddr, &socket_mutex, &azimuth_mutex,
+        std::thread read_orientation_thread(read_orientation, socket, &cliaddr, &azimuth_mutex,
                                             &azimuth_buffer);
 //    }
 
@@ -292,17 +291,13 @@ int main(int argc, char *argv[]) {
 
     // Wait for data to start getting transmitted from the phone
     // before we start playing our video on VLC and rendering captions.
-    if (presentation_method != CONTROL) {
-//        while (azimuth_buffer.size() < MOVING_AVG_SIZE) {
-//        }
-    }
     bool started = false;
 
     SDL_Event event;
     bool done = false;
     int action = 0;
     // Main loop.
-    std::thread play_captions_thread(start_caption_stream, &started, socket, &cliaddr, &socket_mutex,
+    std::thread play_captions_thread(start_caption_stream, &started, socket, &cliaddr,
                                      &json,
                                      &caption_model, presentation_method);
     SDL_RenderPresent(app_context.renderer);

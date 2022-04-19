@@ -18,13 +18,12 @@ double to_radians(double degrees) {
 }
 
 
-void read_orientation(int socket, sockaddr_in *client_address, std::mutex *socket_mutex, std::mutex *azimuth_mutex,
+void read_orientation(int socket, sockaddr_in *client_address, std::mutex *azimuth_mutex,
                       std::deque<float> *orientation_buffer) {
     size_t len, num_bytes_read;
     std::array<char, 256> buffer{};
     len = sizeof(*client_address);
 
-    socket_mutex->lock();
     num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
                               0, (struct sockaddr *) &(*client_address),
                               reinterpret_cast<socklen_t *>(&len));

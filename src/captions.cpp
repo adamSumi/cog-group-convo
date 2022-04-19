@@ -69,8 +69,8 @@ cog::Juror juror_from_string(const std::string &juror_str) {
     return juror;
 }
 
-void transmit_caption(int socket, sockaddr_in *client_address, std::mutex *socket_mutex, const std::string &text,
-                      cog::Juror speaker_id, cog::Juror focused_id, int message_id, int chunk_id) {
+void transmit_caption(int socket, sockaddr_in *client_address, const std::string &text, cog::Juror speaker_id,
+                      cog::Juror focused_id, int message_id, int chunk_id) {
     flatbuffers::FlatBufferBuilder builder(1024);
     auto caption_message = cog::CreateCaptionMessageDirect(builder, text.c_str(), speaker_id, focused_id, message_id,
                                                            chunk_id);
@@ -88,8 +88,8 @@ void transmit_caption(int socket, sockaddr_in *client_address, std::mutex *socke
 
 
 void
-start_caption_stream(const bool *started, int socket, sockaddr_in *client_address, std::mutex *socket_mutex,
-                     nlohmann::json *caption_json, CaptionModel *model, const int presentation_method) {
+start_caption_stream(const bool *started, int socket, sockaddr_in *client_address, nlohmann::json *caption_json,
+                     CaptionModel *model, const int presentation_method) {
     while (!(*started)) {}
     for (auto i = 0; i < caption_json->size(); ++i) {
         auto text = caption_json->at(i)["text"].get<std::string>();
@@ -105,7 +105,7 @@ start_caption_stream(const bool *started, int socket, sockaddr_in *client_addres
         auto chunk_id = caption_json->at(i)["chunk_id"].get<int>();
         auto focused_id = cog::Juror_JuryForeman;
         if (presentation_method == 4) {
-            transmit_caption(socket, client_address, socket_mutex, text, speaker_id, focused_id, message_id, chunk_id);
+            transmit_caption(socket, client_address, text, speaker_id, focused_id, message_id, chunk_id);
         }
         std::this_thread::sleep_for(std::chrono::duration<double, std::ratio<1, 1000>>(delay));
         model->add_word(text, speaker_id);
