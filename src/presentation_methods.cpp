@@ -2,6 +2,9 @@
 #include "presentation_methods.hpp"
 #include "orientation.hpp"
 
+SDL_Color bg = {0,0,255,128};
+SDL_Color fg = {255,255,255,128};
+
 std::optional<SDL_Rect> rectangle_intersection(const SDL_Rect *a, const SDL_Rect *b) {
     int intersection_tl_x = std::max(a->x, b->x);
     int intersection_tl_y = std::max(a->y, b->y);
@@ -65,7 +68,7 @@ void render_nonregistered_captions_with_indicators(const AppContext *context) {
                                                       context->foreground_color, context->background_color);
     bool should_show_forward_arrow = false;
     bool should_show_back_arrow = false;
-    const auto[left, right] = context->juror_intervals->at(juror);
+    const auto[left, right] = context->juror_intervals.at(juror);
     if ((adjusted_x + text_width / 2) < left) {
         should_show_forward_arrow = true;
     } else if ((adjusted_x + text_width / 2) > right) {
@@ -93,15 +96,14 @@ void render_registered_captions(const AppContext *context) {
     if (text.empty()) {
         return;
     }
-    // We've previously identified where on the screen to place the captions underneath the jurors. Those are represented as percentages of the VLC surface fov_x_2/height
-    auto[left_x_percent, left_y_percent] = context->juror_positions->at(juror);
+    // We've previously identified where on the screen to place the captions u nderneath the jurors. Those are represented as percentages of the VLC surface fov_x_2/height
+    auto[left_x_percent, left_y_percent] = context->juror_positions.at(juror);
     // Now we just re-hydrate those values with the current size of the VLC surface to get where the captions should be positioned.
     int text_x = left_x_percent * context->display_rect.w;
     int text_y = left_y_percent * context->display_rect.h;
     // Retrieve the font to be used for the current juror
     auto font = context->juror_font_sizes->at(juror);
     // And let's create a surface of the text we've been given.
-
     auto text_surface = TTF_RenderText_Shaded_Wrapped(font, text.c_str(), *context->foreground_color,
                                                       *context->background_color,
                                                       WRAP_LENGTH);
@@ -119,12 +121,12 @@ void render_registered_captions(const AppContext *context) {
     // We also have a pre-defined field-of-view (FOV), which is how much the person would be able to see if they were
     // wearing a realistic HWD.
     auto azimuth = filtered_azimuth(context->azimuth_buffer, context->azimuth_mutex);
-    const auto half_fov_in_radians = to_radians(HALF_FOV);
+    const auto half_fov_in_radians = to_radians(context->half_fov);
 
     // We can calculate how much of the window fov_x_2 the FOV covers with some trig...
-    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(HALF_FOV)) +
+    const auto fov_x = angle_to_pixel_position(azimuth) - angle_to_pixel_position(to_radians(context->half_fov)) +
                        context->window_width / 3;
-    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(HALF_FOV)) +
+    const auto fov_x_2 = angle_to_pixel_position(azimuth) + angle_to_pixel_position(to_radians(context->half_fov)) +
                          context->window_width / 3;
     auto l = std::min(fov_x, fov_x_2);
     auto r = std::max(fov_x, fov_x_2);
@@ -142,7 +144,16 @@ void render_registered_captions(const AppContext *context) {
     // caption should be rendered.
     auto intersection = rectangle_intersection(&surface_rect, &fov_region);
     // If they don't intersect at all, there's nothing to render, we stop here.
+    int arrow_x = (l + r) / 2;
+    SDL_Surface *arrow_surface = nullptr;
     if (!intersection.has_value()) {
+        if(l > text_x) {
+            arrow_surface = context->back_arrow;
+        } else{
+            arrow_surface = context->forward_arrow;
+        }
+        auto destination_rect = SDL_Rect{arrow_x, context->y - 400 , arrow_surface->w, arrow_surface->h};
+        render_surface_as_texture(context->renderer, arrow_surface, nullptr, &destination_rect);
         SDL_FreeSurface(text_surface);
         return;
     }

@@ -27,13 +27,15 @@ void read_orientation(int socket, sockaddr_in *client_address, std::mutex *azimu
     num_bytes_read = recvfrom(socket, buffer.data(), buffer.size(),
                               0, (struct sockaddr *) &(*client_address),
                               reinterpret_cast<socklen_t *>(&len));
+
     while (num_bytes_read != -1) {
         azimuth_mutex->lock();
         if (orientation_buffer->size() == MOVING_AVG_SIZE) {
             orientation_buffer->pop_front();
         }
         auto current_orientation = cog::GetOrientationMessage(buffer.data());
-        auto current_azimuth = current_orientation->azimuth();
+        auto current_azimuth = current_orientation->gyro_z();
+        std::cout<<"Current Orientation: " << current_azimuth << "\n";
         if (current_azimuth < 0) {
             current_azimuth = current_azimuth + 2 * PI;
         }
